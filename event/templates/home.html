@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Events Exclusive - Find the Best Event Vendors{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mobile: add visible border around each category card */
+@media (max-width: 768px) {
+  .category-card {
+    border: 2px solid rgba(0, 180, 216, 0.45); /* ocean blue with subtle transparency */
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(3, 4, 94, 0.06);
+    border-radius: var(--radius-lg);
+  }
+}
+</style>
+{% endblock %}
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content text-center">
+            <h1 class="hero-title">Find the Perfect Vendors for Your Event</h1>
+            <p class="hero-subtitle">
+                Discover top-rated venues, caterers, photographers, DJs, and more across Ghana
+            </p>
+            
+            <!-- Search Box -->
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="search-box">
+                        <form action="{% url 'vendor_list' %}" method="GET">
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0">
+                                            <i class="bi bi-search text-muted"></i>
+                                        </span>
+                                        <input type="text" name="q" class="form-control border-start-0" 
+                                               placeholder="Search vendors, services...">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select name="category" class="form-select">
+                                        <option value="">All Categories</option>
+                                        {% for category in categories %}
+                                            <option value="{{ category.slug }}">{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="city" class="form-select">
+                                        <option value="">All Cities</option>
+                                        <option value="Accra">Accra</option>
+                                        <option value="Kumasi">Kumasi</option>
+                                        <option value="Tema">Tema</option>
+                                        <option value="Takoradi">Takoradi</option>
+                                        <option value="Cape Coast">Cape Coast</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary-custom w-100">
+                                        <i class="bi bi-search me-1"></i>Search
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Browse by Category</h2>
+            <p class="section-subtitle">Find vendors for every aspect of your event</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for category in categories %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <a href="{% url 'category_vendors' category.slug %}" class="text-decoration-none">
+                        <div class="category-card">
+                            <span class="icon">{{ category.icon|default:"🎉" }}</span>
+                            <h5>{{ category.name }}</h5>
+                            <p>{{ category.description|truncatewords:8 }}</p>
+                        </div>
+                    </a>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p class="text-muted">No categories available yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Vendors Section -->
+<section class="py-5 bg-pale">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Featured Vendors</h2>
+            <p class="section-subtitle">Top-rated event professionals in Ghana</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for vendor in featured_vendors %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="vendor-card">
+                        {% if vendor.images %}
+                            <img src="{{ vendor.images.0 }}" class="card-img-top" alt="{{ vendor.name }}">
+                        {% else %}
+                            <div class="card-img-top bg-gradient-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-shop text-white" style="font-size: 4rem;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="vendor-category">{{ vendor.category.name }}</span>
+                                {% if vendor.verified %}
+                                    <span class="verified-badge">
+                                        <i class="bi bi-patch-check-fill"></i> Verified
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <h5 class="vendor-name">{{ vendor.name }}</h5>
+                            
+                            <p class="vendor-location mb-2">
+                                <i class="bi bi-geo-alt me-1"></i>{{ vendor.city }}{% if vendor.neighborhood %}, {{ vendor.neighborhood }}{% endif %}
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="rating">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= vendor.rating %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="text-muted ms-1">({{ vendor.reviews_count }})</span>
+                                </div>
+                                <span class="price-tier">
+                                    {% if vendor.price_tier == 'low' %}₵{% elif vendor.price_tier == 'medium' %}₵₵{% else %}₵₵₵{% endif %}
+                                </span>
+                            </div>
+                            
+                            <a href="{% url 'vendor_detail' vendor.slug %}" class="btn btn-outline-custom w-100 mt-3">
+                                View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p class="text-muted">No featured vendors available yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {% if featured_vendors %}
+            <div class="text-center mt-5">
+                <a href="{% url 'vendor_list' %}" class="btn btn-primary-custom btn-lg">
+                    <i class="bi bi-grid me-2"></i>View All Vendors
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Planning your event has never been easier</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-gradient-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+                        <i class="bi bi-search text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="text-deep-navy">1. Search & Discover</h4>
+                    <p class="text-muted">Browse through our curated list of verified event vendors across Ghana</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-gradient-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+                        <i class="bi bi-chat-dots text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="text-deep-navy">2. Connect & Compare</h4>
+                    <p class="text-muted">Request quotes, read reviews, and compare vendors to find the perfect match</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-gradient-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+                        <i class="bi bi-calendar-check text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="text-deep-navy">3. Book & Celebrate</h4>
+                    <p class="text-muted">Book your chosen vendors and enjoy a stress-free event planning experience</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="fw-bold mb-3">Are You an Event Vendor?</h2>
+                <p class="mb-0 opacity-75">
+                    Join Ghana's largest event marketplace and connect with thousands of potential clients. 
+                    Showcase your services, manage leads, and grow your business.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <a href="{% url 'register' %}" class="btn btn-light btn-lg px-4">
+                    <i class="bi bi-shop me-2"></i>List Your Business
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-value text-primary-custom">100+</div>
+                    <div class="stat-label">Verified Vendors</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-value text-primary-custom">100+</div>
+                    <div class="stat-label">Happy Clients</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-value text-primary-custom">15+</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-value text-primary-custom">5+</div>
+                    <div class="stat-label">Cities Covered</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

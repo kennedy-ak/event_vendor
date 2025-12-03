@@ -1,0 +1,22 @@
+[project]
+name = "ghana-events-marketplace"
+version = "0.1.0"
+description = "A discovery and booking platform for event-related services in Ghana"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "django>=5.0",
+    "psycopg2-binary>=2.9.9",
+    "pillow>=10.0.0",
+    "django-crispy-forms>=2.1",
+    "crispy-bootstrap5>=2.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "pytest>=7.0.0",
+    "pytest-django>=4.5.0",
+]

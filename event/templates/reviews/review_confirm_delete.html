@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Review - Events Exclusive{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-primary text-white py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold mb-2">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Delete Review
+                </h1>
+                <p class="mb-0 opacity-75">This action cannot be undone</p>
+            </div>
+            <div class="col-md-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-md-end mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-white-50">Home</a></li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'vendor_detail' review.vendor.slug %}" class="text-white-50">{{ review.vendor.name }}</a>
+                        </li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">Delete Review</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Confirm Delete -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card-custom border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="bi bi-trash me-2"></i>Confirm Deletion</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                            <div>
+                                <p class="mb-2">
+                                    Are you sure you want to permanently delete your review for
+                                    <span class="fw-bold text-deep-navy">{{ review.vendor.name }}</span>?
+                                </p>
+                                <p class="text-muted mb-0 small">This action cannot be undone.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 rounded" style="background-color: var(--color-background);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-deep-navy fw-500">{{ review.title }}</div>
+                                    <div class="text-muted small">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-0 mt-2">{{ review.body }}</p>
+                        </div>
+
+                        <form method="POST" class="d-flex gap-3 justify-content-end mt-4">
+                            {% csrf_token %}
+                            <a href="{% url 'vendor_detail' review.vendor.slug %}" class="btn btn-secondary-custom">
+                                <i class="bi bi-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom">
+                                <i class="bi bi-trash me-2"></i>Delete Review
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Help -->
+                <div class="card-custom mt-4 bg-pale border-0">
+                    <div class="card-body">
+                        <h6 class="text-deep-navy mb-2"><i class="bi bi-info-circle me-2"></i>Need Help?</h6>
+                        <p class="text-muted small mb-0">
+                            If you deleted this review by mistake, you can always write a new one from the vendor's page.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fw-500 { font-weight: 500; }
+</style>
+{% endblock %}

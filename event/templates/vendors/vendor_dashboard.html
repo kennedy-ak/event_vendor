@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Vendor Dashboard - Events Exclusive{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<section class="bg-gradient-primary text-white py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold mb-2">
+                    <i class="bi bi-speedometer2 me-2"></i>Vendor Dashboard
+                </h1>
+                <p class="mb-0 opacity-75">Manage your listings, view leads, and track performance</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="{% url 'vendor_create' %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle me-2"></i>Add New Listing
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Overview -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-value">{{ vendors.count }}</div>
+                            <div class="stat-label">Active Listings</div>
+                        </div>
+                        <div class="bg-pale rounded-circle p-3">
+                            <i class="bi bi-shop text-primary-custom fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-value">{{ total_views|intcomma }}</div>
+                            <div class="stat-label">Total Views</div>
+                        </div>
+                        <div class="bg-pale rounded-circle p-3">
+                            <i class="bi bi-eye text-primary-custom fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-value">{{ total_leads }}</div>
+                            <div class="stat-label">Total Leads</div>
+                        </div>
+                        <div class="bg-pale rounded-circle p-3">
+                            <i class="bi bi-people text-primary-custom fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card" style="border-left-color: var(--color-warning);">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-value text-warning">{{ pending_leads }}</div>
+                            <div class="stat-label">Pending Leads</div>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                            <i class="bi bi-bell text-warning fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Dashboard Content -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Listings Column -->
+            <div class="col-lg-5">
+                <div class="card-custom h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-shop me-2"></i>My Listings</h5>
+                        <a href="{% url 'vendor_create' %}" class="btn btn-primary-custom btn-sm">
+                            <i class="bi bi-plus"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        {% if vendors %}
+                            <div class="list-group list-group-flush">
+                                {% for vendor in vendors %}
+                                    <div class="list-group-item px-0 py-3 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            {% if vendor.images %}
+                                                <img src="{{ vendor.images.0 }}" class="rounded me-3" 
+                                                     style="width: 60px; height: 60px; object-fit: cover;" alt="{{ vendor.name }}">
+                                            {% else %}
+                                                <div class="bg-gradient-secondary rounded me-3 d-flex align-items-center justify-content-center" 
+                                                     style="width: 60px; height: 60px;">
+                                                    <i class="bi bi-shop text-white"></i>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 text-deep-navy">{{ vendor.name }}</h6>
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    <span class="badge {% if vendor.status == 'active' %}bg-success{% elif vendor.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                        {{ vendor.get_status_display }}
+                                                    </span>
+                                                    {% if vendor.verified %}
+                                                        <span class="badge bg-info">
+                                                            <i class="bi bi-patch-check-fill"></i> Verified
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-eye me-1"></i>{{ vendor.views_count }} views
+                                                    <i class="bi bi-people ms-2 me-1"></i>{{ vendor.leads_count }} leads
+                                                </small>
+                                            </div>
+                                            
+                                            <div class="dropdown">
+                                                <button class="btn btn-link text-muted" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{% url 'vendor_detail' vendor.slug %}">
+                                                            <i class="bi bi-eye me-2"></i>View Profile
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="{% url 'vendor_update' vendor.slug %}">
+                                                            <i class="bi bi-pencil me-2"></i>Edit Listing
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-shop text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-3 mb-3">You haven't created any listings yet</p>
+                                <a href="{% url 'vendor_create' %}" class="btn btn-primary-custom">
+                                    <i class="bi bi-plus-circle me-2"></i>Create Your First Listing
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Leads Column -->
+            <div class="col-lg-7">
+                <div class="card-custom h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>Recent Leads</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-custom">{{ leads_page.paginator.count }} Total</span>
+                            <a href="{% url 'leads_list' %}" class="btn btn-light btn-sm">
+                                <i class="bi bi-arrow-right me-1"></i>View All
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if leads_page %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Contact</th>
+                                            <th>Vendor</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for lead in leads_page %}
+                                            <tr>
+                                                <td>
+                                                    <div>
+                                                        <strong class="text-deep-navy">{{ lead.name }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            {% if lead.phone %}
+                                                                <i class="bi bi-telephone me-1"></i>{{ lead.phone }}
+                                                            {% endif %}
+                                                            {% if lead.email %}
+                                                                <i class="bi bi-envelope ms-2 me-1"></i>{{ lead.email }}
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="text-primary-custom">{{ lead.vendor.name }}</span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">{{ lead.created_at|naturaltime }}</small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge {% if lead.status == 'new' %}bg-warning{% elif lead.status == 'contacted' %}bg-info{% else %}bg-success{% endif %}">
+                                                        {{ lead.get_status_display }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-custom" data-bs-toggle="modal" data-bs-target="#leadModal{{ lead.id }}">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                        {% if lead.phone %}
+                                                            <a href="tel:{{ lead.phone }}" class="btn btn-outline-custom">
+                                                                <i class="bi bi-telephone"></i>
+                                                            </a>
+                                                        {% endif %}
+                                                        {% if lead.email %}
+                                                            <a href="mailto:{{ lead.email }}" class="btn btn-outline-custom">
+                                                                <i class="bi bi-envelope"></i>
+                                                            </a>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            
+                                            <!-- Lead Detail Modal -->
+                                            <div class="modal fade" id="leadModal{{ lead.id }}" tabindex="-1">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-gradient-primary text-white">
+                                                            <h5 class="modal-title">Lead Details</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label text-muted small">Name</label>
+                                                                <p class="mb-0 fw-bold">{{ lead.name }}</p>
+                                                            </div>
+                                                            {% if lead.phone %}
+                                                                <div class="mb-3">
+                                                                    <label class="form-label text-muted small">Phone</label>
+                                                                    <p class="mb-0">
+                                                                        <a href="tel:{{ lead.phone }}">{{ lead.phone }}</a>
+                                                                    </p>
+                                                                </div>
+                                                            {% endif %}
+                                                            {% if lead.email %}
+                                                                <div class="mb-3">
+                                                                    <label class="form-label text-muted small">Email</label>
+                                                                    <p class="mb-0">
+                                                                        <a href="mailto:{{ lead.email }}">{{ lead.email }}</a>
+                                                                    </p>
+                                                                </div>
+                                                            {% endif %}
+                                                            {% if lead.event_date %}
+                                                                <div class="mb-3">
+                                                                    <label class="form-label text-muted small">Event Date</label>
+                                                                    <p class="mb-0">{{ lead.event_date }}</p>
+                                                                </div>
+                                                            {% endif %}
+                                                            {% if lead.message %}
+                                                                <div class="mb-3">
+                                                                    <label class="form-label text-muted small">Message</label>
+                                                                    <p class="mb-0">{{ lead.message }}</p>
+                                                                </div>
+                                                            {% endif %}
+                                                            <div class="mb-0">
+                                                                <label class="form-label text-muted small">Received</label>
+                                                                <p class="mb-0">{{ lead.created_at|date:"F d, Y H:i" }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                                                            {% if lead.phone %}
+                                                                <a href="tel:{{ lead.phone }}" class="btn btn-primary-custom">
+                                                                    <i class="bi bi-telephone me-2"></i>Call Now
+                                                                </a>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Pagination -->
+                            {% if leads_page.has_other_pages %}
+                                <nav aria-label="Leads pagination" class="mt-4">
+                                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                                        {% if leads_page.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ leads_page.previous_page_number }}">
+                                                    <i class="bi bi-chevron-left"></i>
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                        
+                                        {% for num in leads_page.paginator.page_range %}
+                                            {% if leads_page.number == num %}
+                                                <li class="page-item active">
+                                                    <span class="page-link">{{ num }}</span>
+                                                </li>
+                                            {% elif num > leads_page.number|add:'-3' and num < leads_page.number|add:'3' %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if leads_page.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ leads_page.next_page_number }}">
+                                                    <i class="bi bi-chevron-right"></i>
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-envelope-open text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-3 mb-0">No leads yet. They'll appear here when customers contact you.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Tips -->
+<section class="py-4">
+    <div class="container">
+        <div class="card-custom bg-pale border-0">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="text-deep-navy mb-2">
+                            <i class="bi bi-lightbulb me-2"></i>Tips to Get More Leads
+                        </h5>
+                        <ul class="mb-0 text-muted">
+                            <li>Add high-quality photos to your listing</li>
+                            <li>Keep your contact information up to date</li>
+                            <li>Respond to leads quickly to improve your rating</li>
+                            <li>Ask satisfied customers to leave reviews</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="#" class="btn btn-primary-custom">
+                            <i class="bi bi-rocket me-2"></i>Boost Your Listing
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

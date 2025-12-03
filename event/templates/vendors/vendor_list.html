@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Browse Vendors - Events Exclusive{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Improve search input group theming to match palette */
+    .input-group-text {
+        background: #fff;
+        border: 2px solid var(--color-pale-cyan);
+        border-right: none;
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        color: var(--color-text-muted);
+    }
+    .input-group .form-control {
+        border: 2px solid var(--color-pale-cyan);
+        border-left: none;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        padding: 0.75rem 1rem;
+    }
+    .input-group .form-control:focus {
+        border-color: var(--color-ocean-blue);
+        box-shadow: none;
+    }
+    .input-group:focus-within .input-group-text {
+        border-color: var(--color-ocean-blue);
+    }
+
+    /* Consistent select sizing and focus ring */
+    .form-select {
+        border: 2px solid var(--color-pale-cyan);
+        border-radius: var(--radius-md);
+        padding: 0.6rem 2.25rem 0.6rem 0.75rem;
+    }
+    .form-select:focus {
+        border-color: var(--color-ocean-blue);
+        box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2);
+    }
+
+    /* Buttons alignment on small screens */
+    @media (max-width: 768px) {
+        .filters-actions {
+            justify-content: stretch !important;
+        }
+        .filters-actions .btn {
+            width: 100%;
+        }
+    }
+
+    /* Keep filter card always visible on desktop while using collapse on mobile */
+    @media (min-width: 992px) {
+        #filtersCollapse.collapse {
+            display: block !important;
+            height: auto !important;
+            visibility: visible !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-primary text-white py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="fw-bold mb-2">Browse Vendors</h1>
+                <p class="mb-0 opacity-75">Find the perfect vendors for your event</p>
+            </div>
+            <div class="col-md-6">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-md-end mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-white-50">Home</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">Vendors</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search & Filter Section -->
+<section class="py-4 bg-pale">
+    <div class="container">
+
+        <!-- Mobile: Toggle button to open filters -->
+        <div class="d-lg-none mb-3">
+            <button
+                class="btn btn-primary-custom w-100 d-flex align-items-center justify-content-center"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#filtersCollapse"
+                aria-expanded="false"
+                aria-controls="filtersCollapse">
+                <i class="bi bi-funnel me-2"></i>Filter search
+            </button>
+        </div>
+
+        <form method="GET" action="{% url 'vendor_list' %}">
+            <!-- Collapsible wrapper: collapsed on mobile, always visible on desktop via CSS -->
+            <div id="filtersCollapse" class="collapse">
+                <div class="card-custom p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="bi bi-search text-muted"></i>
+                                </span>
+                                <input
+                                    type="text"
+                                    name="q"
+                                    class="form-control border-start-0"
+                                    placeholder="Search vendors..."
+                                    aria-label="Search vendors"
+                                    value="{{ form.q.value|default:'' }}"
+                                >
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Category</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">City</label>
+                            {{ form.city }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Price Range</label>
+                            {{ form.price_tier }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Min Rating</label>
+                            {{ form.min_rating }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 d-flex gap-2 justify-content-end filters-actions flex-wrap">
+                            <a href="{% url 'vendor_list' %}" class="btn btn-secondary-custom">
+                                <i class="bi bi-x-circle me-1"></i>Clear
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom">
+                                <i class="bi bi-funnel me-1"></i>Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Results Section -->
+<section class="py-5">
+    <div class="container">
+        <!-- Results Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="text-deep-navy mb-1">
+                    <i class="bi bi-grid me-2"></i>{{ total_count }} Vendor{{ total_count|pluralize }} Found
+                </h5>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-custom active" id="gridView">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-custom" id="listView">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vendor Grid -->
+        <div class="row g-4" id="vendorGrid">
+            {% for vendor in page_obj %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="vendor-card h-100">
+                        {% if vendor.images %}
+                            <img src="{{ vendor.images.0 }}" class="card-img-top" alt="{{ vendor.name }}">
+                        {% else %}
+                            <div class="card-img-top bg-gradient-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-shop text-white" style="font-size: 4rem;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="vendor-category">{{ vendor.category.name }}</span>
+                                {% if vendor.verified %}
+                                    <span class="verified-badge">
+                                        <i class="bi bi-patch-check-fill"></i>
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <h5 class="vendor-name">{{ vendor.name }}</h5>
+                            
+                            <p class="vendor-location mb-2">
+                                <i class="bi bi-geo-alt me-1"></i>{{ vendor.city }}{% if vendor.neighborhood %}, {{ vendor.neighborhood }}{% endif %}
+                            </p>
+                            
+                            <p class="text-muted small flex-grow-1">
+                                {{ vendor.description|truncatewords:15 }}
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="rating">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= vendor.rating %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="text-muted ms-1 small">({{ vendor.reviews_count }})</span>
+                                </div>
+                                <span class="price-tier">
+                                    {% if vendor.price_tier == 'low' %}₵{% elif vendor.price_tier == 'medium' %}₵₵{% else %}₵₵₵{% endif %}
+                                </span>
+                            </div>
+                            
+                            <a href="{% url 'vendor_detail' vendor.slug %}" class="btn btn-outline-custom w-100">
+                                View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="text-deep-navy mt-3">No Vendors Found</h4>
+                        <p class="text-muted">Try adjusting your search filters or browse all vendors</p>
+                        <a href="{% url 'vendor_list' %}" class="btn btn-primary-custom">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Clear Filters
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Vendor pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // View toggle functionality
+    document.getElementById('gridView').addEventListener('click', function() {
+        this.classList.add('active');
+        document.getElementById('listView').classList.remove('active');
+        document.querySelectorAll('#vendorGrid > div').forEach(function(col) {
+            col.className = 'col-lg-3 col-md-4 col-sm-6';
+        });
+    });
+    
+    document.getElementById('listView').addEventListener('click', function() {
+        this.classList.add('active');
+        document.getElementById('gridView').classList.remove('active');
+        document.querySelectorAll('#vendorGrid > div').forEach(function(col) {
+            col.className = 'col-12';
+        });
+    });
+</script>
+{% endblock %}

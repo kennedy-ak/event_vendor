@@ -1,0 +1,673 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Events Exclusive - Find the best event vendors in Ghana">
+    <title>{% block title %}Events Exclusive{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Ocean-inspired Color Palette */
+            --color-deep-navy: #03045E;
+            --color-royal-blue: #0077B6;
+            --color-ocean-blue: #00B4D8;
+            --color-light-aqua: #90E0EF;
+            --color-pale-cyan: #CAF0F8;
+            
+            /* Semantic Colors */
+            --color-primary: #0077B6;
+            --color-primary-dark: #03045E;
+            --color-primary-light: #00B4D8;
+            --color-secondary: #90E0EF;
+            --color-background: #CAF0F8;
+            --color-background-light: #f8fcfe;
+            --color-text-dark: #03045E;
+            --color-text-light: #ffffff;
+            --color-text-muted: #5a6c7d;
+            
+            /* Status Colors */
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+            --color-info: #00B4D8;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(3, 4, 94, 0.05);
+            --shadow-md: 0 4px 6px rgba(3, 4, 94, 0.1);
+            --shadow-lg: 0 10px 15px rgba(3, 4, 94, 0.15);
+            --shadow-xl: 0 20px 25px rgba(3, 4, 94, 0.2);
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-background-light);
+            color: var(--color-text-dark);
+            line-height: 1.6;
+        }
+        
+        /* Navbar Styles */
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--color-deep-navy) 0%, var(--color-royal-blue) 100%);
+            padding: 1rem 0;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .navbar-custom .navbar-brand {
+            color: var(--color-text-light);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .navbar-custom .navbar-brand:hover {
+            color: var(--color-light-aqua);
+        }
+        
+        .navbar-custom .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            border-radius: var(--radius-md);
+        }
+        
+        .navbar-custom .nav-link:hover {
+            color: var(--color-text-light);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .navbar-custom .nav-link.active {
+            color: var(--color-text-light);
+            background-color: var(--color-ocean-blue);
+        }
+        
+        /* Button Styles */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--color-royal-blue) 0%, var(--color-ocean-blue) 100%);
+            border: none;
+            color: var(--color-text-light);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, var(--color-deep-navy) 0%, var(--color-royal-blue) 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: var(--color-text-light);
+        }
+        
+        .btn-secondary-custom {
+            background-color: var(--color-pale-cyan);
+            border: 2px solid var(--color-ocean-blue);
+            color: var(--color-royal-blue);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary-custom:hover {
+            background-color: var(--color-light-aqua);
+            border-color: var(--color-royal-blue);
+            color: var(--color-deep-navy);
+        }
+        
+        .btn-outline-custom {
+            background-color: transparent;
+            border: 2px solid var(--color-royal-blue);
+            color: var(--color-royal-blue);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-custom:hover {
+            background-color: var(--color-royal-blue);
+            color: var(--color-text-light);
+        }
+        
+        /* Card Styles */
+        .card-custom {
+            background: var(--color-text-light);
+            border: none;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .card-custom .card-header {
+            background: linear-gradient(135deg, var(--color-deep-navy) 0%, var(--color-royal-blue) 100%);
+            color: var(--color-text-light);
+            border: none;
+            padding: 1rem 1.25rem;
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, var(--color-deep-navy) 0%, var(--color-royal-blue) 50%, var(--color-ocean-blue) 100%);
+            color: var(--color-text-light);
+            padding: 5rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        /* Search Box */
+        .search-box {
+            background: var(--color-text-light);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .search-box .form-control {
+            border: 2px solid var(--color-pale-cyan);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box .form-control:focus {
+            border-color: var(--color-ocean-blue);
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2);
+        }
+        
+        /* Category Cards */
+        .category-card {
+            background: var(--color-text-light);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        
+        .category-card:hover {
+            border-color: var(--color-ocean-blue);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .category-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .category-card h5 {
+            color: var(--color-deep-navy);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .category-card p {
+            color: var(--color-text-muted);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+        
+        /* Vendor Cards */
+        .vendor-card {
+            background: var(--color-text-light);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+        
+        .vendor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .vendor-card .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .vendor-card .card-body {
+            padding: 1.25rem;
+        }
+        
+        .vendor-card .vendor-name {
+            color: var(--color-deep-navy);
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .vendor-card .vendor-category {
+            color: var(--color-ocean-blue);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .vendor-card .vendor-location {
+            color: var(--color-text-muted);
+            font-size: 0.875rem;
+        }
+        
+        .vendor-card .rating {
+            color: var(--color-warning);
+        }
+        
+        .vendor-card .price-tier {
+            color: var(--color-success);
+            font-weight: 600;
+        }
+        
+        /* Verified Badge */
+        .verified-badge {
+            background: linear-gradient(135deg, var(--color-ocean-blue) 0%, var(--color-royal-blue) 100%);
+            color: var(--color-text-light);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        /* Section Styles */
+        .section-title {
+            color: var(--color-deep-navy);
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-subtitle {
+            color: var(--color-text-muted);
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+        }
+        
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--color-deep-navy) 0%, var(--color-royal-blue) 100%);
+            color: var(--color-text-light);
+            padding: 4rem 0 2rem;
+        }
+        
+        .footer h5 {
+            color: var(--color-light-aqua);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: var(--color-light-aqua);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            margin-top: 3rem;
+        }
+        
+        /* Form Styles */
+        .form-label {
+            color: var(--color-deep-navy);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid var(--color-pale-cyan);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--color-ocean-blue);
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2);
+        }
+        
+        /* Alert Styles */
+        .alert-custom {
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+        }
+        
+        .alert-success-custom {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--color-success);
+            border-left: 4px solid var(--color-success);
+        }
+        
+        .alert-danger-custom {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--color-danger);
+            border-left: 4px solid var(--color-danger);
+        }
+        
+        .alert-info-custom {
+            background-color: rgba(0, 180, 216, 0.1);
+            color: var(--color-ocean-blue);
+            border-left: 4px solid var(--color-ocean-blue);
+        }
+        
+        /* Pagination */
+        .pagination .page-link {
+            color: var(--color-royal-blue);
+            border: 2px solid var(--color-pale-cyan);
+            border-radius: var(--radius-md);
+            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination .page-link:hover {
+            background-color: var(--color-light-aqua);
+            border-color: var(--color-ocean-blue);
+            color: var(--color-deep-navy);
+        }
+        
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--color-royal-blue) 0%, var(--color-ocean-blue) 100%);
+            border-color: var(--color-royal-blue);
+            color: var(--color-text-light);
+        }
+        
+        /* Stats Cards */
+        .stat-card {
+            background: var(--color-text-light);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--color-ocean-blue);
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-deep-navy);
+        }
+        
+        .stat-card .stat-label {
+            color: var(--color-text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb-custom {
+            background-color: var(--color-pale-cyan);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+        }
+        
+        .breadcrumb-custom .breadcrumb-item a {
+            color: var(--color-royal-blue);
+            text-decoration: none;
+        }
+        
+        .breadcrumb-custom .breadcrumb-item.active {
+            color: var(--color-deep-navy);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-section {
+                padding: 3rem 0;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+        }
+        
+        /* Utility Classes */
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, var(--color-deep-navy) 0%, var(--color-royal-blue) 100%);
+        }
+        
+        .bg-gradient-secondary {
+            background: linear-gradient(135deg, var(--color-royal-blue) 0%, var(--color-ocean-blue) 100%);
+        }
+        
+        .bg-pale {
+            background-color: var(--color-pale-cyan);
+        }
+        
+        .text-primary-custom {
+            color: var(--color-royal-blue);
+        }
+        
+        .text-deep-navy {
+            color: var(--color-deep-navy);
+        }
+        
+        .text-ocean {
+            color: var(--color-ocean-blue);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="bi bi-calendar-event me-2"></i>Events Exclusive
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="bi bi-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'vendor_list' %}">
+                            <i class="bi bi-shop me-1"></i>Vendors
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        {% if user.role == 'vendor' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'vendor_dashboard' %}">
+                                    <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profile' %}">
+                                <i class="bi bi-person-circle me-1"></i>Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'favorites' %}">
+                                <i class="bi bi-heart me-1"></i>Favorites
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right me-1"></i>Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-primary-custom ms-2" href="{% url 'register' %}">
+                                <i class="bi bi-person-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-custom {% if message.tags == 'success' %}alert-success-custom{% elif message.tags == 'error' %}alert-danger-custom{% else %}alert-info-custom{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5><i class="bi bi-calendar-event me-2"></i>Events Exclusive</h5>
+                    <p class="text-white-50">
+                        Your premier destination for finding the best event vendors in Ghana. 
+                        From venues to caterers, photographers to DJs, we've got you covered.
+                    </p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-white fs-5"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-4 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{% url 'home' %}">Home</a></li>
+                        <li class="mb-2"><a href="{% url 'vendor_list' %}">Browse Vendors</a></li>
+                        <li class="mb-2"><a href="#">About Us</a></li>
+                        <li class="mb-2"><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-4 mb-4">
+                    <h5>For Vendors</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{% url 'register' %}">Register</a></li>
+                        <li class="mb-2"><a href="#">Pricing</a></li>
+                        <li class="mb-2"><a href="#">Success Stories</a></li>
+                        <li class="mb-2"><a href="#">Resources</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-4 col-md-4 mb-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled text-white-50">
+                        <li class="mb-2">
+                            <i class="bi bi-geo-alt me-2"></i>Accra, Ghana
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-envelope me-2"></i>info@ghanaevents.com
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-phone me-2"></i>+233 XX XXX XXXX
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom text-center text-white-50">
+                <p class="mb-0">&copy; {% now "Y" %} Events Exclusive. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

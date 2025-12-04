@@ -28,6 +28,13 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
+# Ensure specific production hosts are allowed (append when ALLOWED_HOSTS isn't a wildcard)
+_ADDITIONAL_ALLOWED_HOSTS = ['queen.digitalrepublic.space', '157.173.118.68']
+if ALLOWED_HOSTS != ['*']:
+    for _h in _ADDITIONAL_ALLOWED_HOSTS:
+        if _h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_h)
+
 
 # Application definition
 
@@ -40,6 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # 'django.contrib.gis',  # Disabled for SQLite development
     'django.contrib.humanize',
+
+    # CORS support (django-cors-headers)
+    'corsheaders',
 
     # Third party apps
     'crispy_forms',
@@ -56,6 +66,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -173,6 +184,14 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 VENDORS_PER_PAGE = 20
 LEADS_PER_PAGE = 20
 REVIEWS_PER_PAGE = 10
+
+# CORS settings (requires `django-cors-headers` package)
+# Install with: pip install django-cors-headers
+CORS_ALLOWED_ORIGINS = [
+    'https://queen.digitalrepublic.space',
+    'http://157.173.118.68:8081',
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # Security Settings for Production
 if not DEBUG:

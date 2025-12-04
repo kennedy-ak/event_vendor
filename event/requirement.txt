@@ -1,0 +1,7 @@
+django
+psycopg2-binary
+pillow
+django-crispy-forms
+crispy-bootstrap5
+python-dotenv
+django-cors-headers

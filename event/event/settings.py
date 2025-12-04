@@ -193,6 +193,13 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF trusted origins (Django requires scheme for trusted origins)
+# Add any front-end origins that will POST to this Django app
+CSRF_TRUSTED_ORIGINS = [
+    'https://queen.digitalrepublic.space',
+    'http://157.173.118.68:8081',
+]
+
 # Security Settings for Production
 if not DEBUG:
     SECURE_SSL_REDIRECT = True

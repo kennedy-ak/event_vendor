@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Success Stories - Events Exclusive{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold mb-2">Success Stories</h1>
+                <p class="mb-0 opacity-75">Real stories from our amazing vendors and happy clients.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                {% if user.role == 'vendor' %}
+                    <a href="{% url 'success_story_create' %}" class="btn btn-light text-primary-custom fw-bold">
+                        <i class="bi bi-plus-circle me-2"></i>Share Your Story
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stories Grid -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            {% for story in page_obj %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card-custom h-100">
+                        {% if story.image %}
+                            <img src="{{ story.image.url }}" class="card-img-top" alt="{{ story.title }}" style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-gradient-secondary d-flex align-items-center justify-content-center" style="height: 250px;">
+                                <i class="bi bi-journal-text text-white" style="font-size: 4rem;"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if story.vendor.images %}
+                                    <img src="{{ story.vendor.images.0 }}" alt="{{ story.vendor.name }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-shop text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-0 text-deep-navy">{{ story.vendor.name }}</h6>
+                                    <small class="text-muted">{{ story.created_at|date:"M d, Y" }}</small>
+                                </div>
+                            </div>
+                            
+                            <h5 class="card-title fw-bold mb-3">{{ story.title }}</h5>
+                            <p class="card-text text-muted">{{ story.content|truncatewords:30 }}</p>
+                            
+                            <button type="button" class="btn btn-link text-decoration-none p-0 mt-2" data-bs-toggle="modal" data-bs-target="#storyModal{{ story.id }}">
+                                Read full story <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="storyModal{{ story.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header border-0">
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4 p-lg-5">
+                                {% if story.image %}
+                                    <img src="{{ story.image.url }}" class="img-fluid rounded mb-4 w-100" alt="{{ story.title }}" style="max-height: 400px; object-fit: cover;">
+                                {% endif %}
+                                
+                                <h2 class="fw-bold mb-3">{{ story.title }}</h2>
+                                
+                                <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
+                                    {% if story.vendor.images %}
+                                        <img src="{{ story.vendor.images.0 }}" alt="{{ story.vendor.name }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded bg-white d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                                            <i class="bi bi-shop text-muted fs-4"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h5 class="mb-0 text-deep-navy">{{ story.vendor.name }}</h5>
+                                        <p class="mb-0 text-muted small">{{ story.vendor.category.name }} • {{ story.vendor.city }}</p>
+                                    </div>
+                                    <a href="{% url 'vendor_detail' story.vendor.slug %}" class="btn btn-sm btn-outline-custom ms-auto">View Profile</a>
+                                </div>
+                                
+                                <div class="story-content">
+                                    {{ story.content|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-journal-bookmark text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                    </div>
+                    <h3>No stories yet</h3>
+                    <p class="text-muted">Be the first to share your success story!</p>
+                    {% if user.role == 'vendor' %}
+                        <a href="{% url 'success_story_create' %}" class="btn btn-primary-custom mt-3">
+                            Share Your Story
+                        </a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Stories pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

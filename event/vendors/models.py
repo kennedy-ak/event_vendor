@@ -2,6 +2,16 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 import uuid
+import os
+
+
+def vendor_image_upload_path(instance, filename):
+    """Generate upload path for vendor images"""
+    # Get file extension
+    ext = filename.split('.')[-1]
+    # Generate new filename: vendor_id/uuid.ext
+    new_filename = f"{uuid.uuid4()}.{ext}"
+    return os.path.join('vendors', str(instance.vendor.id), new_filename)
 
 
 class Vendor(models.Model):
@@ -114,3 +124,63 @@ class Vendor(models.Model):
             self.rating = reviews.aggregate(models.Avg('rating'))['rating__avg']
             self.reviews_count = reviews.count()
             self.save(update_fields=['rating', 'reviews_count'])
+
+    def get_primary_image(self):
+        """Get the primary image for the vendor"""
+        primary = self.vendor_images.filter(is_primary=True).first()
+        if primary:
+            return primary.image.url if primary.image else None
+        # Fallback to first image
+        first_image = self.vendor_images.first()
+        return first_image.image.url if first_image and first_image.image else None
+
+    def get_all_images(self):
+        """Get all vendor images"""
+        return self.vendor_images.all().order_by('-is_primary', 'order', '-created_at')
+
+
+class VendorImage(models.Model):
+    """Model for vendor images"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='vendor_images')
+    image = models.ImageField(upload_to=vendor_image_upload_path, max_length=500)
+    caption = models.CharField(max_length=255, blank=True)
+    is_primary = models.BooleanField(default=False, help_text="Primary image displayed in listings")
+    order = models.IntegerField(default=0, help_text="Display order (lower number = first)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'vendor_images'
+        ordering = ['-is_primary', 'order', '-created_at']
+        indexes = [
+            models.Index(fields=['vendor', 'is_primary']),
+            models.Index(fields=['vendor', 'order']),
+        ]
+
+    def __str__(self):
+        return f"{self.vendor.name} - Image {self.id}"
+
+    def save(self, *args, **kwargs):
+        """If this image is set as primary, unset other primary images"""
+        if self.is_primary:
+            VendorImage.objects.filter(vendor=self.vendor, is_primary=True).update(is_primary=False)
+        super().save(*args, **kwargs)
+
+
+class SuccessStory(models.Model):
+    """Success stories from vendors"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='success_stories')
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    image = models.ImageField(upload_to='success_stories/', blank=True, null=True)
+    is_approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'success_stories'
+        ordering = ['-created_at']
+        verbose_name_plural = 'success stories'
+
+    def __str__(self):
+        return f"{self.title} - {self.vendor.name}"

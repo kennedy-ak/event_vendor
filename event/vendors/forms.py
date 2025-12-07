@@ -1,6 +1,7 @@
 from django import forms
+from django.forms import inlineformset_factory
 from django.utils.text import slugify
-from .models import Vendor
+from .models import Vendor, VendorImage, SuccessStory
 from categories.models import Category
 
 # Ensure consistent Bootstrap classes on all rendered form fields
@@ -172,3 +173,50 @@ class VendorSearchForm(forms.Form):
         self.fields['category'].choices = [('', 'All Categories')] + [
             (c.slug, c.name) for c in categories
         ]
+
+
+class VendorImageForm(forms.ModelForm):
+    """Form for uploading vendor images"""
+
+    class Meta:
+        model = VendorImage
+        fields = ['image', 'caption', 'is_primary', 'order']
+        widgets = {
+            'caption': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional caption'}),
+            'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['caption'].required = False
+        self.fields['order'].initial = 0
+
+
+# Create formset for multiple image uploads
+VendorImageFormSet = inlineformset_factory(
+    Vendor,
+    VendorImage,
+    form=VendorImageForm,
+    extra=3,  # Show 3 empty forms by default
+    max_num=15,  # Maximum 15 images per vendor
+    can_delete=True,
+    validate_max=True,
+)
+
+
+class SuccessStoryForm(forms.ModelForm):
+    """Form for submitting a success story"""
+
+    class Meta:
+        model = SuccessStory
+        fields = ['title', 'content', 'image']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Share your success story...'}),
+            'title': forms.TextInput(attrs={'placeholder': 'Title of your story'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_bootstrap_styles(self.fields)

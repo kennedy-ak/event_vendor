@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Share Your Success Story - Events Exclusive{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-primary text-white py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold mb-2">Share Your Story</h1>
+                <p class="mb-0 opacity-75">Inspire others with your success on Events Exclusive.</p>
+            </div>
+            <div class="col-md-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-md-end mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-white-50">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'success_stories_list' %}" class="text-white-50">Stories</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">Share</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Form Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card-custom">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3" style="width: 80px; height: 80px;">
+                                <i class="bi bi-pencil-square text-primary-custom fs-1"></i>
+                            </div>
+                            <h3 class="fw-bold text-deep-navy">Tell Us Your Story</h3>
+                            <p class="text-muted">
+                                Share a memorable event, a client testimonial, or how Events Exclusive helped grow your business.
+                            </p>
+                        </div>
+
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            <div class="mb-4">
+                                <label class="form-label">Title *</label>
+                                {{ form.title }}
+                                <div class="form-text">Give your story a catchy headline.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Your Story *</label>
+                                {{ form.content }}
+                                <div class="form-text">Describe the event, the challenge, and the successful outcome.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Featured Image</label>
+                                {{ form.image }}
+                                <div class="form-text">Upload a high-quality image from the event (optional).</div>
+                            </div>
+
+                            <div class="alert alert-info-custom mb-4">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Your story will be reviewed by our team before being published.
+                            </div>
+
+                            <div class="d-flex gap-3 justify-content-end pt-3 border-top">
+                                <a href="{% url 'success_stories_list' %}" class="btn btn-secondary-custom">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary-custom px-4">
+                                    <i class="bi bi-send me-2"></i>Submit Story
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-control, .form-select {
+        border: 2px solid var(--color-pale-cyan);
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1rem;
+    }
+    .form-control:focus {
+        border-color: var(--color-ocean-blue);
+        box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2);
+    }
+    textarea.form-control {
+        min-height: 150px;
+    }
+</style>
+{% endblock %}

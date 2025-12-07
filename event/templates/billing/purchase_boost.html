@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Purchase Featured Listing - Ghana Events{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow">
+                    <div class="card-header text-white text-center py-3" style="background: linear-gradient(135deg, #0077B6, #00B4D8);">
+                        <h4 class="mb-0">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Boost Your Listing
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert border-0 mb-4" style="background-color: #CAF0F8;">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>{{ vendor.name }}</strong> - Get more visibility and leads with a featured listing
+                        </div>
+
+                        <form method="POST">
+                            {% csrf_token %}
+
+                            <!-- Boost Type -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" style="color: #03045E;">Select Boost Type</label>
+
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <input type="radio" class="btn-check" name="boost_type" value="featured" id="boost_featured" checked>
+                                        <label class="card boost-card h-100 text-center p-3" for="boost_featured" style="cursor: pointer; border: 2px solid #90E0EF;">
+                                            <div>
+                                                <i class="bi bi-star" style="font-size: 2rem; color: #0077B6;"></i>
+                                                <h6 class="mt-2 mb-1">Featured</h6>
+                                                <p class="small text-muted mb-2">Appear in featured section</p>
+                                                <div class="fw-bold" style="color: #0077B6;">GHS {{ boost_prices.featured }}/week</div>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <input type="radio" class="btn-check" name="boost_type" value="banner" id="boost_banner">
+                                        <label class="card boost-card h-100 text-center p-3" for="boost_banner" style="cursor: pointer; border: 2px solid #90E0EF;">
+                                            <div>
+                                                <i class="bi bi-badge-ad" style="font-size: 2rem; color: #00B4D8;"></i>
+                                                <h6 class="mt-2 mb-1">Banner</h6>
+                                                <p class="small text-muted mb-2">Homepage banner display</p>
+                                                <div class="fw-bold" style="color: #00B4D8;">GHS {{ boost_prices.banner }}/week</div>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <input type="radio" class="btn-check" name="boost_type" value="top" id="boost_top">
+                                        <label class="card boost-card h-100 text-center p-3" for="boost_top" style="cursor: pointer; border: 2px solid #90E0EF;">
+                                            <div>
+                                                <i class="bi bi-arrow-up-circle" style="font-size: 2rem; color: #03045E;"></i>
+                                                <h6 class="mt-2 mb-1">Top Placement</h6>
+                                                <p class="small text-muted mb-2">Always appear first in search</p>
+                                                <div class="fw-bold" style="color: #03045E;">GHS {{ boost_prices.top }}/week</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Duration -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" style="color: #03045E;">Duration</label>
+                                <select name="duration_days" class="form-select" id="duration-select">
+                                    <option value="7" selected>1 Week</option>
+                                    <option value="14">2 Weeks</option>
+                                    <option value="30">1 Month</option>
+                                </select>
+                            </div>
+
+                            <!-- Price Preview -->
+                            <div class="card mb-4" style="background-color: #F8F9FA; border: 2px solid #90E0EF;">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">Total Price:</span>
+                                        <span class="fs-4 fw-bold" style="color: #0077B6;" id="total-price">
+                                            GHS 50
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-primary-custom w-100 btn-lg">
+                                <i class="bi bi-rocket-takeoff me-2"></i>Purchase Boost
+                            </button>
+
+                            <a href="{% url 'vendor_dashboard' %}" class="btn btn-link w-100 mt-2">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Benefits Card -->
+                <div class="card mt-4 border-0" style="background-color: #CAF0F8;">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3" style="color: #03045E;">
+                            <i class="bi bi-lightning me-2"></i>Boost Benefits
+                        </h6>
+                        <ul class="mb-0">
+                            <li class="mb-2">Appear at the top of search results</li>
+                            <li class="mb-2">Get up to 10x more profile views</li>
+                            <li class="mb-2">Increase lead generation significantly</li>
+                            <li class="mb-0">Stand out from competitors</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const boostPrices = {
+        'featured': {{ boost_prices.featured }},
+        'banner': {{ boost_prices.banner }},
+        'top': {{ boost_prices.top }}
+    };
+
+    const boostTypeInputs = document.querySelectorAll('input[name="boost_type"]');
+    const durationSelect = document.getElementById('duration-select');
+    const totalPriceElement = document.getElementById('total-price');
+
+    function updatePrice() {
+        const selectedBoost = document.querySelector('input[name="boost_type"]:checked').value;
+        const duration = parseInt(durationSelect.value);
+        const weeklyPrice = boostPrices[selectedBoost];
+        const totalPrice = weeklyPrice * (duration / 7);
+
+        totalPriceElement.textContent = `GHS ${totalPrice.toFixed(2)}`;
+    }
+
+    boostTypeInputs.forEach(input => {
+        input.addEventListener('change', updatePrice);
+    });
+
+    durationSelect.addEventListener('change', updatePrice);
+
+    // Style selected boost card
+    boostTypeInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            document.querySelectorAll('.boost-card').forEach(card => {
+                card.style.borderColor = '#90E0EF';
+                card.style.backgroundColor = 'white';
+            });
+            if (this.checked) {
+                const label = document.querySelector(`label[for="${this.id}"]`);
+                label.style.borderColor = '#0077B6';
+                label.style.backgroundColor = '#CAF0F8';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .boost-card {
+        transition: all 0.3s ease;
+    }
+    .boost-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 119, 182, 0.2);
+    }
+</style>
+{% endblock %}

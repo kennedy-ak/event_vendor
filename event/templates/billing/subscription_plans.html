@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subscription Plans - Ghana Events{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold mb-2">
+                    <i class="bi bi-credit-card me-2"></i>Subscription Plans
+                </h1>
+                <p class="mb-0 opacity-75">
+                    Choose the perfect plan for your business and get more leads
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="py-5">
+    <div class="container">
+        {% if user_vendors %}
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-10">
+                    <div class="alert border-0" style="background-color: #CAF0F8;">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Select a vendor:</strong> Choose which vendor listing you want to subscribe
+                    </div>
+
+                    <!-- Vendor Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Select Vendor</label>
+                        <select id="vendor-select" class="form-select form-select-lg">
+                            <option value="">-- Select a vendor --</option>
+                            {% for vendor in user_vendors %}
+                                <option value="{{ vendor.id }}">
+                                    {{ vendor.name }}
+                                    {% if vendor.id in current_subscriptions %}
+                                        (Current: {{ current_subscriptions|get_item:vendor.id.plan.display_name }})
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Pricing Cards -->
+        <div class="row g-4">
+            {% for plan in plans %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm {% if plan.name == 'standard' %}border-3{% endif %}"
+                         style="{% if plan.name == 'standard' %}border-color: #0077B6 !important;{% endif %}">
+                        {% if plan.name == 'standard' %}
+                            <div class="card-header text-white text-center py-2" style="background: linear-gradient(135deg, #0077B6, #00B4D8);">
+                                <small class="fw-bold">MOST POPULAR</small>
+                            </div>
+                        {% endif %}
+
+                        <div class="card-body p-4 text-center">
+                            <!-- Plan Icon -->
+                            <div class="mb-3">
+                                {% if plan.name == 'basic' %}
+                                    <i class="bi bi-trophy" style="font-size: 3rem; color: #90E0EF;"></i>
+                                {% elif plan.name == 'standard' %}
+                                    <i class="bi bi-star-fill" style="font-size: 3rem; color: #0077B6;"></i>
+                                {% else %}
+                                    <i class="bi bi-gem" style="font-size: 3rem; color: #03045E;"></i>
+                                {% endif %}
+                            </div>
+
+                            <!-- Plan Name -->
+                            <h3 class="fw-bold" style="color: #03045E;">{{ plan.display_name }}</h3>
+                            <p class="text-muted">{{ plan.description }}</p>
+
+                            <!-- Price -->
+                            <div class="my-4">
+                                <h2 class="fw-bold mb-0" style="color: #0077B6;">
+                                    {{ plan.currency }} {{ plan.price|floatformat:0 }}
+                                </h2>
+                                <small class="text-muted">per month</small>
+                            </div>
+
+                            <!-- Features -->
+                            <ul class="list-unstyled text-start mb-4">
+                                {% for feature in plan.features %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle-fill me-2" style="color: #00B4D8;"></i>
+                                        {{ feature }}
+                                    </li>
+                                {% endfor %}
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill me-2" style="color: #00B4D8;"></i>
+                                    {% if plan.max_images %}{{ plan.max_images }}{% else %}Unlimited{% endif %} images
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill me-2" style="color: #00B4D8;"></i>
+                                    {% if plan.max_leads_per_month %}{{ plan.max_leads_per_month }}{% else %}Unlimited{% endif %} leads/month
+                                </li>
+                                {% if plan.featured_listing_included %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle-fill me-2" style="color: #00B4D8;"></i>
+                                        Featured listing included
+                                    </li>
+                                {% endif %}
+                            </ul>
+
+                            <!-- Subscribe Button -->
+                            <button class="btn w-100 subscribe-btn {% if plan.name == 'standard' %}btn-primary-custom{% else %}btn-outline{% endif %}"
+                                    data-plan-id="{{ plan.id }}"
+                                    data-plan-name="{{ plan.display_name }}"
+                                    {% if not user_vendors %}disabled{% endif %}>
+                                {% if plan.name == 'standard' %}
+                                    <i class="bi bi-star-fill me-2"></i>
+                                {% endif %}
+                                Choose {{ plan.display_name }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if not user_vendors %}
+            <div class="row justify-content-center mt-5">
+                <div class="col-lg-8 text-center">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        You need to create a vendor listing first before subscribing to a plan.
+                    </div>
+                    <a href="{% url 'vendor_create' %}" class="btn btn-primary-custom">
+                        <i class="bi bi-plus-circle me-2"></i>Create Vendor Listing
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5" style="background-color: #CAF0F8;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h3 class="text-center mb-4" style="color: #03045E;">Frequently Asked Questions</h3>
+
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Can I change my plan later?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes! You can upgrade or downgrade your plan at any time. Changes will take effect in the next billing cycle.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                What payment methods do you accept?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We accept all major payment methods through Paystack including Mobile Money, credit/debit cards, and bank transfers.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Can I cancel my subscription?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, you can cancel your subscription at any time from your vendor dashboard. Your plan will remain active until the end of the billing period.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vendorSelect = document.getElementById('vendor-select');
+    const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+
+    subscribeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const vendorId = vendorSelect.value;
+            const planId = this.dataset.planId;
+
+            if (!vendorId) {
+                alert('Please select a vendor first');
+                vendorSelect.focus();
+                return;
+            }
+
+            // Redirect to subscribe page with vendor ID
+            window.location.href = `/billing/subscribe/${planId}/?vendor_id=${vendorId}`;
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .btn-outline {
+        border: 2px solid #00B4D8;
+        color: #0077B6;
+        background: white;
+    }
+    .btn-outline:hover {
+        background: #00B4D8;
+        color: white;
+    }
+    .accordion-button:not(.collapsed) {
+        background-color: #90E0EF;
+        color: #03045E;
+    }
+</style>
+{% endblock %}

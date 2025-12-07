@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import Vendor
+from .models import Vendor, VendorImage
+
+
+class VendorImageInline(admin.TabularInline):
+    """Inline admin for vendor images"""
+    model = VendorImage
+    extra = 1
+    fields = ['image', 'caption', 'is_primary', 'order']
+    readonly_fields = []
 
 
 @admin.register(Vendor)
@@ -10,6 +18,7 @@ class VendorAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ['rating', 'reviews_count', 'views_count', 'leads_count', 'created_at', 'updated_at']
     ordering = ['-created_at']
+    inlines = [VendorImageInline]
 
     fieldsets = (
         ('Basic Information', {
@@ -49,3 +58,13 @@ class VendorAdmin(admin.ModelAdmin):
         queryset.update(status='suspended')
         self.message_user(request, f"{queryset.count()} vendors suspended.")
     suspend_vendors.short_description = "Suspend selected vendors"
+
+
+@admin.register(VendorImage)
+class VendorImageAdmin(admin.ModelAdmin):
+    """Standalone admin for vendor images"""
+    list_display = ['vendor', 'is_primary', 'order', 'created_at']
+    list_filter = ['is_primary', 'created_at']
+    search_fields = ['vendor__name', 'caption']
+    ordering = ['vendor', '-is_primary', 'order']
+    readonly_fields = ['created_at']

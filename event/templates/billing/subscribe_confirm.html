@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirm Subscription - Ghana Events{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow">
+                    <div class="card-header text-white text-center py-3" style="background: linear-gradient(135deg, #03045E, #0077B6);">
+                        <h4 class="mb-0">
+                            <i class="bi bi-credit-card me-2"></i>Confirm Subscription
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if existing_sub %}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Note:</strong> You already have an active {{ existing_sub.plan.display_name }} subscription.
+                                Subscribing to a new plan will replace your current subscription.
+                            </div>
+                        {% endif %}
+
+                        <h5 class="mb-3" style="color: #03045E;">Subscription Details</h5>
+
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold">Vendor:</td>
+                                <td>{{ vendor.name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Plan:</td>
+                                <td>{{ plan.display_name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Price:</td>
+                                <td class="fs-4 fw-bold" style="color: #0077B6;">{{ plan.currency }} {{ plan.price }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Billing:</td>
+                                <td>Monthly (auto-renewal)</td>
+                            </tr>
+                        </table>
+
+                        <div class="border-top pt-3 mb-4">
+                            <h6 class="mb-2" style="color: #03045E;">Plan Features:</h6>
+                            <ul class="list-unstyled">
+                                {% for feature in plan.features %}
+                                    <li class="mb-1">
+                                        <i class="bi bi-check-circle-fill me-2" style="color: #00B4D8;"></i>
+                                        {{ feature }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary-custom w-100 btn-lg">
+                                <i class="bi bi-shield-check me-2"></i>Proceed to Payment
+                            </button>
+                        </form>
+
+                        <a href="{% url 'subscription_plans' %}" class="btn btn-link w-100 mt-2">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

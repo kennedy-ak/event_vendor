@@ -4,6 +4,7 @@ from django.contrib import messages
 from .models import Lead
 from .forms import LeadForm, LeadStatusForm
 from vendors.models import Vendor
+from vendors.emails import send_lead_notification_email
 
 
 def lead_create_view(request, vendor_slug):
@@ -28,6 +29,14 @@ def lead_create_view(request, vendor_slug):
                     lead.phone = request.user.phone
 
             lead.save()
+
+            # Send email notification to vendor
+            try:
+                send_lead_notification_email(lead)
+            except Exception as e:
+                # Log error but don't fail the request
+                print(f"Failed to send lead notification email: {e}")
+
             messages.success(request, f'Your request has been sent to {vendor.name}!')
 
             return redirect('vendor_detail', slug=vendor.slug)

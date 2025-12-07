@@ -21,6 +21,13 @@ class LeadForm(forms.ModelForm):
         self.fields['event_date'].required = False
         self.fields['message'].required = False
 
+        # Apply Bootstrap classes
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, (forms.Select, forms.SelectMultiple)):
+                field.widget.attrs['class'] = 'form-select'
+            else:
+                field.widget.attrs['class'] = 'form-control'
+
 
 class LeadStatusForm(forms.ModelForm):
     """Form for updating lead status"""

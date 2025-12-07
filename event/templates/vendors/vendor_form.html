@@ -139,7 +139,7 @@
                                 <h5 class="text-deep-navy mb-3 pb-2 border-bottom">
                                     <i class="bi bi-currency-exchange me-2"></i>Pricing
                                 </h5>
-                                
+
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Price Tier *</label>
@@ -159,7 +159,107 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
+                            <!-- Image Gallery -->
+                            <div class="mb-4">
+                                <h5 class="text-deep-navy mb-3 pb-2 border-bottom">
+                                    <i class="bi bi-images me-2"></i>Image Gallery
+                                </h5>
+
+                                <div class="alert alert-info border-0" style="background-color: #CAF0F8;">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <small>Upload up to 15 high-quality images showcasing your work. The first image marked as "Primary" will be featured in search results.</small>
+                                </div>
+
+                                {{ image_formset.management_form }}
+
+                                <div id="image-formset-container">
+                                    {% for form in image_formset %}
+                                        <div class="image-form-item card mb-3 border-2" style="border-color: #90E0EF;">
+                                            <div class="card-body">
+                                                <div class="row g-3 align-items-center">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold">Image File</label>
+                                                        {{ form.image }}
+                                                        {% if form.image.errors %}
+                                                            <div class="text-danger small mt-1">{{ form.image.errors.0 }}</div>
+                                                        {% endif %}
+                                                        {% if form.instance.image %}
+                                                            <div class="mt-2">
+                                                                <img src="{{ form.instance.image.url }}" alt="Preview" class="img-thumbnail" style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small fw-bold">Caption (Optional)</label>
+                                                        {{ form.caption }}
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="mb-2">
+                                                            <label class="form-label small fw-bold">Primary</label>
+                                                            <div class="form-check">
+                                                                {{ form.is_primary }}
+                                                                <label class="form-check-label small" for="{{ form.is_primary.id_for_label }}">
+                                                                    Featured image
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label class="form-label small fw-bold">Order</label>
+                                                            {{ form.order }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {% if form.instance.pk %}
+                                                    <div class="mt-2">
+                                                        {{ form.DELETE }}
+                                                        <label for="{{ form.DELETE.id_for_label }}" class="text-danger small">
+                                                            <i class="bi bi-trash me-1"></i>Delete this image
+                                                        </label>
+                                                    </div>
+                                                {% endif %}
+                                                {{ form.id }}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Tags & Social Media -->
+                            <div class="mb-4">
+                                <h5 class="text-deep-navy mb-3 pb-2 border-bottom">
+                                    <i class="bi bi-tags me-2"></i>Tags & Social Media
+                                </h5>
+
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label">Tags</label>
+                                        {{ form.tags }}
+                                        {% if form.tags.errors %}
+                                            <div class="text-danger small mt-1">{{ form.tags.errors.0 }}</div>
+                                        {% endif %}
+                                        <small class="text-muted">Format: ["tag1", "tag2", "tag3"] e.g., ["wedding", "outdoor", "luxury"]</small>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Social Links</label>
+                                        {{ form.social_links }}
+                                        {% if form.social_links.errors %}
+                                            <div class="text-danger small mt-1">{{ form.social_links.errors.0 }}</div>
+                                        {% endif %}
+                                        <small class="text-muted">Format: {"instagram": "@handle", "facebook": "pagename"}</small>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Subcategory</label>
+                                        {{ form.subcategory }}
+                                        {% if form.subcategory.errors %}
+                                            <div class="text-danger small mt-1">{{ form.subcategory.errors.0 }}</div>
+                                        {% endif %}
+                                        <small class="text-muted">Optional: Specify a subcategory or specialty</small>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Submit Buttons -->
                             <div class="d-flex gap-3 justify-content-end pt-4 border-top">
                                 <a href="{% url 'vendor_dashboard' %}" class="btn btn-secondary-custom">

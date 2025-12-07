@@ -21,6 +21,9 @@ django-cors-headers>=4.3.1
 # Payment Gateway
 pypaystack2>=1.1.0  # Paystack Python SDK
 
+# AI Chatbot
+openai>=1.10.0  # OpenAI API for chatbot
+
 # Geospatial
 # django-geopy==0.6  # Geocoding - Removed as it's causing issues
 geopy==2.4.1  # Location utilities

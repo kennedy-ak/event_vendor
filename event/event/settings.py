@@ -12,9 +12,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -62,6 +66,7 @@ INSTALLED_APPS = [
     'leads',
     'billing',
     'reviews',
+    'chatbot',
 ]
 
 MIDDLEWARE = [
@@ -258,6 +263,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Paystack Configuration (Payment Gateway)
 PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
+
+# OpenAI Configuration (AI Chatbot)
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 
 # Site Configuration
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')

@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'billing',
     'reviews',
     'chatbot',
+    'admin_panel',
 ]
 
 MIDDLEWARE = [
@@ -164,6 +165,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Media files
 MEDIA_URL = '/media/'
@@ -264,8 +268,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
 
-# OpenAI Configuration (AI Chatbot)
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+# Groq Configuration (AI Chatbot)
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 
 # Site Configuration
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')

@@ -1,0 +1,247 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ vendor.name }} - Admin Panel{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div class="mb-3">
+    <a href="{% url 'admin_panel:vendors_list' %}" class="btn btn-link text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i> Back to Vendors
+    </a>
+</div>
+
+<!-- Vendor Header -->
+<div class="detail-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                {% if vendor.images %}
+                    <img src="{{ vendor.images.0 }}" class="rounded me-3"
+                         style="width: 80px; height: 80px; object-fit: cover;" alt="{{ vendor.name }}">
+                {% else %}
+                    <div class="bg-gradient-secondary rounded me-3 d-flex align-items-center justify-content-center"
+                         style="width: 80px; height: 80px; font-size: 2rem;">
+                        <i class="bi bi-shop text-white"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h4 class="mb-1">{{ vendor.name }}</h4>
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-tag me-1"></i>{{ vendor.category.name }}
+                        {% if vendor.subcategory %} • {{ vendor.subcategory }}{% endif %}
+                    </p>
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-geo-alt me-1"></i>{{ vendor.city }}, {{ vendor.neighborhood }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                <span class="status-badge status-{{ vendor.status }}">
+                    {{ vendor.get_status_display }}
+                </span>
+                {% if vendor.verified %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-patch-check-fill"></i> Verified
+                    </span>
+                {% endif %}
+                {% if vendor.subscription_plan %}
+                    <span class="badge bg-info">{{ vendor.subscription_plan.display_name }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="detail-section">
+    <h6><i class="bi bi-gear me-2"></i>Quick Actions</h6>
+    <div class="d-flex flex-wrap gap-2">
+        {% if vendor.status == 'pending' %}
+            <form method="post" action="{% url 'admin_panel:vendor_approve' vendor.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="action-btn action-btn-success"
+                        onclick="return confirm('Approve {{ vendor.name }} and mark as active?');">
+                    <i class="bi bi-check-circle"></i> Approve Vendor
+                </button>
+            </form>
+        {% endif %}
+
+        <form method="post" action="{% url 'admin_panel:vendor_suspend' vendor.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="action-btn {% if vendor.status == 'suspended' %}action-btn-success{% else %}action-btn-warning{% endif %}"
+                    onclick="return confirm('{% if vendor.status == "suspended" %}Reactivate {{ vendor.name }}?{% else %}Suspend {{ vendor.name }}?{% endif %}');">
+                <i class="bi bi-{% if vendor.status == 'suspended' %}toggle-on{% else %}toggle-off{% endif %}"></i>
+                {% if vendor.status == 'suspended' %}Reactivate{% else %}Suspend{% endif %}
+            </button>
+        </form>
+
+        <form method="post" action="{% url 'admin_panel:vendor_verify' vendor.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="action-btn action-btn-primary"
+                    onclick="return confirm('{% if vendor.verified %}Remove verification badge from {{ vendor.name }}?{% else %}Add verification badge to {{ vendor.name }}?{% endif %}');">
+                <i class="bi bi-patch-check"></i>
+                {% if vendor.verified %}Unverify{% else %}Verify{% endif %}
+            </button>
+        </form>
+
+        <a href="{% url 'vendor_detail' vendor.slug %}" target="_blank" class="action-btn action-btn-outline">
+            <i class="bi bi-box-arrow-up-right"></i> View on Site
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <!-- Vendor Details -->
+        <div class="detail-section">
+            <h6><i class="bi bi-info-circle me-2"></i>Vendor Information</h6>
+            <div class="detail-row">
+                <div class="detail-label">Description</div>
+                <div class="detail-value">{{ vendor.description|truncatewords:30 }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Price Tier</div>
+                <div class="detail-value">{{ vendor.get_price_tier_display }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Est. Price Range</div>
+                <div class="detail-value">{{ vendor.estimated_price_range|default:"Not specified" }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Owner</div>
+                <div class="detail-value">
+                    <a href="{% url 'admin_panel:user_detail' vendor.user.id %}">{{ vendor.user.email }}</a>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Joined</div>
+                <div class="detail-value">{{ vendor.created_at|date:"F d, Y H:i" }}</div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="detail-section">
+            <h6><i class="bi bi-telephone me-2"></i>Contact Information</h6>
+            <div class="detail-row">
+                <div class="detail-label">Phone</div>
+                <div class="detail-value">
+                    <a href="tel:{{ vendor.phone_number }}">{{ vendor.phone_number }}</a>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Email</div>
+                <div class="detail-value">
+                    <a href="mailto:{{ vendor.email }}">{{ vendor.email }}</a>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Website</div>
+                <div class="detail-value">
+                    {% if vendor.website %}
+                        <a href="{{ vendor.website }}" target="_blank">{{ vendor.website }}</a>
+                    {% else %}
+                        <span class="text-muted">Not provided</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Address</div>
+                <div class="detail-value">{{ vendor.address }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <!-- Analytics -->
+        <div class="detail-section">
+            <h6><i class="bi bi-graph-up me-2"></i>Analytics</h6>
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ vendor.views_count|intcomma }}</div>
+                        <div class="stat-label">Profile Views</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ vendor.leads_count|intcomma }}</div>
+                        <div class="stat-label">Total Leads</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ vendor.rating }}</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ vendor.reviews_count }}</div>
+                        <div class="stat-label">Reviews</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Subscription -->
+        <div class="detail-section">
+            <h6><i class="bi bi-credit-card me-2"></i>Subscription</h6>
+            {% if subscriptions %}
+                {% for subscription in subscriptions|slice:":1" %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ subscription.plan.display_name }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {{ subscription.start_date|date:"M d, Y" }} - {{ subscription.renewal_date|date:"M d, Y" }}
+                            </small>
+                        </div>
+                        <span class="status-badge status-{{ subscription.status }}">
+                            {{ subscription.get_status_display }}
+                        </span>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted mb-0">No active subscription</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Leads -->
+        <div class="detail-section">
+            <h6><i class="bi bi-envelope me-2"></i>Recent Leads ({{ recent_leads|length }})</h6>
+            {% if recent_leads %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in recent_leads %}
+                                <tr>
+                                    <td>{{ lead.name }}</td>
+                                    <td>{{ lead.created_at|date:"M d" }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ lead.status }}">
+                                            {{ lead.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No leads yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

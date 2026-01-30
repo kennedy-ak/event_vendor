@@ -1,0 +1,200 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Chatbot Conversations - Admin Panel{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-chat-dots me-2"></i>Chatbot Conversations</h4>
+        <p class="text-muted mb-0">Monitor AI chatbot activity and effectiveness</p>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total Conversations</div>
+                </div>
+                <div class="stat-icon bg-pale text-primary-custom">
+                    <i class="bi bi-chat-dots"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.completed }}</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.recommendations_sent }}</div>
+                    <div class="stat-label">Recommendations Sent</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <i class="bi bi-stars"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="admin-filters">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="status">Status</label>
+            <select class="form-select" id="status" name="status">
+                <option value="">All Status</option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="incomplete" {% if status_filter == 'incomplete' %}selected{% endif %}>Incomplete</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="event_type">Event Type</label>
+            <input type="text" class="form-control" id="event_type" name="event_type"
+                   placeholder="e.g., wedding..." value="{{ event_type_filter }}">
+        </div>
+        <div class="col-md-6">
+            <label>&nbsp;</label>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary-custom action-btn">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <a href="{% url 'admin_panel:chatbot_conversations' %}" class="btn btn-outline-custom action-btn">
+                    <i class="bi bi-x-circle"></i> Clear
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Conversations Table -->
+<div class="admin-table-container">
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>User</th>
+                    <th>Event Type</th>
+                    <th>Status</th>
+                    <th>Recommendations</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conversation in page_obj %}
+                    <tr>
+                        <td>
+                            <code class="bg-pale px-2 py-1 rounded">{{ conversation.conversation_code }}</code>
+                        </td>
+                        <td>
+                            {% if conversation.user %}
+                                <a href="{% url 'admin_panel:user_detail' conversation.user.id %}">
+                                    {{ conversation.user.email }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Guest</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if conversation.event_type %}
+                                <span class="badge bg-light text-dark">{{ conversation.event_type }}</span>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if conversation.is_completed %}
+                                <span class="status-badge status-completed">Completed</span>
+                            {% else %}
+                                <span class="status-badge status-incomplete">Incomplete</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if conversation.recommendations_sent %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-stars me-1"></i>Yes
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ conversation.created_at|date:"M d, Y H:i" }}</small>
+                        </td>
+                        <td>
+                            <a href="{% url 'admin_panel:chatbot_detail' conversation.id %}"
+                               class="action-btn action-btn-primary action-btn-sm">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="bi bi-chat-dots"></i>
+                                <p class="mb-0">No conversations found</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Conversations pagination" class="mt-4">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if event_type_filter %}&event_type={{ event_type_filter }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if event_type_filter %}&event_type={{ event_type_filter }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if event_type_filter %}&event_type={{ event_type_filter }}{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

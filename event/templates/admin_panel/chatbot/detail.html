@@ -1,0 +1,243 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Conversation {{ conversation.conversation_code }} - Admin Panel{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div class="mb-3">
+    <a href="{% url 'admin_panel:chatbot_conversations' %}" class="btn btn-link text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i> Back to Conversations
+    </a>
+</div>
+
+<!-- Conversation Header -->
+<div class="detail-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h4 class="mb-1">
+                <i class="bi bi-chat-dots me-2"></i>Conversation {{ conversation.conversation_code }}
+            </h4>
+            <p class="mb-0 text-muted">
+                {% if conversation.user %}
+                    <i class="bi bi-person me-1"></i>{{ conversation.user.email }}
+                {% else %}
+                    <i class="bi bi-person-x me-1"></i>Guest User
+                {% endif %}
+                <span class="mx-2">|</span>
+                <i class="bi bi-calendar me-1"></i>{{ conversation.created_at|date:"F d, Y H:i" }}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                {% if conversation.is_completed %}
+                    <span class="status-badge status-completed">
+                        <i class="bi bi-check-circle me-1"></i>Completed
+                    </span>
+                {% else %}
+                    <span class="status-badge status-incomplete">
+                        <i class="bi bi-clock me-1"></i>Incomplete
+                    </span>
+                {% endif %}
+                {% if conversation.recommendations_sent %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-stars me-1"></i>Recommendations Sent
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <!-- Event Details -->
+        <div class="detail-section">
+            <h6><i class="bi bi-calendar-event me-2"></i>Event Information</h6>
+            <div class="detail-row">
+                <div class="detail-label">Event Type</div>
+                <div class="detail-value">
+                    {% if conversation.event_type %}
+                        <span class="badge bg-light text-dark">{{ conversation.event_type }}</span>
+                    {% else %}
+                        <span class="text-muted">Not specified</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Event Date</div>
+                <div class="detail-value">
+                    {% if conversation.event_date %}
+                        {{ conversation.event_date|date:"F d, Y" }}
+                    {% else %}
+                        <span class="text-muted">Not specified</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">
+                    {% if conversation.location %}
+                        {{ conversation.location }}
+                    {% else %}
+                        <span class="text-muted">Not specified</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Guest Count</div>
+                <div class="detail-value">
+                    {% if conversation.guest_count %}
+                        {{ conversation.guest_count }} guests
+                    {% else %}
+                        <span class="text-muted">Not specified</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Budget Range</div>
+                <div class="detail-value">
+                    {% if conversation.budget_min and conversation.budget_max %}
+                        GHS {{ conversation.budget_min|intcomma }} - GHS {{ conversation.budget_max|intcomma }}
+                    {% else %}
+                        <span class="text-muted">Not specified</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if conversation.special_requirements %}
+                <div class="detail-row">
+                    <div class="detail-label">Special Requirements</div>
+                    <div class="detail-value">{{ conversation.special_requirements }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="detail-section">
+            <h6><i class="bi bi-chat-left-text me-2"></i>Conversation ({{ messages.count }} messages)</h6>
+            <div class="d-flex flex-column gap-3">
+                {% for message in messages %}
+                    <div class="d-flex {% if message.role == 'user' %}justify-content-end{% else %}justify-content-start{% endif %}">
+                        <div class="card {% if message.role == 'user' %}bg-pale{% else %}bg-light{% endif %}" style="max-width: 80%;">
+                            <div class="card-body py-2 px-3">
+                                <small class="text-muted d-block mb-1">
+                                    <strong>{% if message.role == 'user' %}You{% elif message.role == 'assistant' %}AI Assistant{% else %}System{% endif %}</strong>
+                                    <span class="mx-1">•</span>
+                                    {{ message.created_at|date:"H:i" }}
+                                </small>
+                                <p class="mb-0">{{ message.content }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted mb-0">No messages in this conversation.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <!-- Recommendations -->
+        <div class="detail-section">
+            <h6><i class="bi bi-stars me-2"></i>Vendor Recommendations ({{ recommendations.count }})</h6>
+            {% if recommendations %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Vendor</th>
+                                <th>Match</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in recommendations %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'admin_panel:vendor_detail' rec.vendor.id %}">
+                                            {{ rec.vendor.name }}
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">{{ rec.vendor.category.name }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-success" style="width: {{ rec.match_score }}%"></div>
+                                            </div>
+                                            <span class="ms-2 fw-bold">{{ rec.match_score }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            {% if rec.viewed %}
+                                                <span class="badge bg-success"><i class="bi bi-eye me-1"></i>Viewed</span>
+                                            {% endif %}
+                                            {% if rec.contacted %}
+                                                <span class="badge bg-primary"><i class="bi bi-envelope me-1"></i>Contacted</span>
+                                            {% endif %}
+                                            {% if rec.favorited %}
+                                                <span class="badge bg-danger"><i class="bi bi-heart me-1"></i>Favorited</span>
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No recommendations were sent.</p>
+            {% endif %}
+        </div>
+
+        <!-- Metadata -->
+        <div class="detail-section">
+            <h6><i class="bi bi-info-circle me-2"></i>Session Details</h6>
+            <div class="detail-row">
+                <div class="detail-label">Session ID</div>
+                <div class="detail-value">
+                    <code class="bg-light px-2 py-1 rounded" style="font-size: 0.75rem;">{{ conversation.session_id|default:"N/A" }}</code>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">IP Address</div>
+                <div class="detail-value">{{ conversation.ip_address|default:"N/A" }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Started</div>
+                <div class="detail-value">{{ conversation.created_at|date:"F d, Y H:i:s" }}</div>
+            </div>
+            {% if conversation.completed_at %}
+                <div class="detail-row">
+                    <div class="detail-label">Completed</div>
+                    <div class="detail-value">{{ conversation.completed_at|date:"F d, Y H:i:s" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Duration</div>
+                    <div class="detail-value">
+                        {% if conversation.completed_at %}
+                            {% with duration=conversation.completed_at|timeuntil:conversation.created_at %}
+                                {{ duration }}
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Vendor Types Needed -->
+        {% if conversation.vendor_types_needed %}
+            <div class="detail-section">
+                <h6><i class="bi bi-list-check me-2"></i>Vendor Types Requested</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for vendor_type in conversation.vendor_types_needed %}
+                        <span class="badge bg-light text-dark">{{ vendor_type }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

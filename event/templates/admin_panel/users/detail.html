@@ -1,0 +1,209 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}{{ user.email }} - Admin Panel{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div class="mb-3">
+    <a href="{% url 'admin_panel:users_list' %}" class="btn btn-link text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i> Back to Users
+    </a>
+</div>
+
+<!-- User Header -->
+<div class="detail-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="bg-gradient-secondary rounded-circle d-flex align-items-center justify-content-center me-3"
+                     style="width: 64px; height: 64px; font-size: 1.5rem;">
+                    {{ user.email|slice:":1"|upper }}
+                </div>
+                <div>
+                    <h4 class="mb-1">{{ user.email }}</h4>
+                    <p class="mb-0 text-muted">@{{ user.username }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="d-flex gap-2 justify-content-md-end">
+                {% if user.is_active %}
+                    <span class="status-badge status-active">Active</span>
+                {% else %}
+                    <span class="status-badge status-suspended">Inactive</span>
+                {% endif %}
+                <span class="status-badge
+                    {% if user.role == 'admin' %}status-active
+                    {% elif user.role == 'vendor' %}status-contacted
+                    {% else %}status-new{% endif %}">
+                    {{ user.get_role_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details -->
+<div class="row">
+    <div class="col-lg-4">
+        <div class="detail-section">
+            <h6><i class="bi bi-person me-2"></i>User Information</h6>
+            <div class="detail-row">
+                <div class="detail-label">Email</div>
+                <div class="detail-value">{{ user.email }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Username</div>
+                <div class="detail-value">{{ user.username }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Phone</div>
+                <div class="detail-value">{{ user.phone|default:"Not provided" }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Role</div>
+                <div class="detail-value">{{ user.get_role_display }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Joined</div>
+                <div class="detail-value">{{ user.created_at|date:"F d, Y H:i" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Actions -->
+        <div class="detail-section">
+            <h6><i class="bi bi-gear me-2"></i>Actions</h6>
+            <div class="d-flex flex-wrap gap-2">
+                {% if user.id != request.user.id %}
+                    <form method="post" action="{% url 'admin_panel:user_toggle_status' user.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="action-btn {% if user.is_active %}action-btn-warning{% else %}action-btn-success{% endif %}"
+                                onclick="return confirm('Are you sure you want to {% if user.is_active %}deactivate{% else %}activate{% endif %} this user?');">
+                            <i class="bi bi-{% if user.is_active %}toggle-off{% else %}toggle-on{% endif %}"></i>
+                            {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+                        </button>
+                    </form>
+
+                    <button type="button" class="action-btn action-btn-primary" data-bs-toggle="modal" data-bs-target="#changeRoleModal">
+                        <i class="bi bi-person-gear"></i> Change Role
+                    </button>
+                {% else %}
+                    <span class="text-muted">You cannot modify your own account.</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- User's Vendors -->
+        <div class="detail-section">
+            <h6><i class="bi bi-shop me-2"></i>User's Vendors ({{ vendors.count }})</h6>
+            {% if vendors %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vendor in vendors %}
+                                <tr>
+                                    <td>{{ vendor.name }}</td>
+                                    <td>{{ vendor.category.name }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ vendor.status }}">
+                                            {{ vendor.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'admin_panel:vendor_detail' vendor.id %}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">This user has no vendors.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Leads -->
+        <div class="detail-section">
+            <h6><i class="bi bi-envelope me-2"></i>Recent Leads</h6>
+            {% if leads %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Vendor</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in leads %}
+                                <tr>
+                                    <td>{{ lead.vendor.name }}</td>
+                                    <td>{{ lead.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ lead.status }}">
+                                            {{ lead.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No leads from this user yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Change Role Modal -->
+<div class="modal fade" id="changeRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'admin_panel:user_change_role' user.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Change User Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">Select a new role for <strong>{{ user.email }}</strong>:</p>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="role" required>
+                            <option value="">Select Role...</option>
+                            <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                            <option value="vendor" {% if user.role == 'vendor' %}selected{% endif %}>Vendor</option>
+                            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> Changing a user's role will affect their permissions and access.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom">Change Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

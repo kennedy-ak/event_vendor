@@ -1,8 +1,8 @@
 """
-AI Service for Event Planner Chatbot using OpenAI
+AI Service for Event Planner Chatbot using Groq
 """
 import json
-import openai
+from groq import Groq
 from django.conf import settings
 from vendors.models import Vendor
 from categories.models import Category
@@ -10,11 +10,11 @@ from .models import ChatConversation, ChatMessage, ChatRecommendation
 
 
 class EventPlannerAI:
-    """AI-powered event planner chatbot"""
+    """AI-powered event planner chatbot using Groq"""
 
     def __init__(self):
-        openai.api_key = settings.OPENAI_API_KEY
-        self.model = "gpt-4-turbo-preview"  # or "gpt-3.5-turbo" for lower cost
+        self.client = Groq(api_key=settings.GROQ_API_KEY)
+        self.model = "llama-3.3-70b-versatile"  # Groq's fast Llama model
 
     def get_system_prompt(self):
         """System prompt to guide the AI's behavior"""
@@ -74,8 +74,8 @@ When you have all the information, respond with: "Perfect! I have everything I n
         messages = self._build_message_history(conversation)
 
         try:
-            # Call OpenAI API
-            response = openai.chat.completions.create(
+            # Call Groq API
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=0.7,
@@ -114,7 +114,7 @@ When you have all the information, respond with: "Perfect! I have everything I n
             return error_message
 
     def _build_message_history(self, conversation):
-        """Build message history for OpenAI API"""
+        """Build message history for Groq API"""
         messages = [
             {"role": "system", "content": self.get_system_prompt()}
         ]
@@ -151,8 +151,8 @@ When you have all the information, respond with: "Perfect! I have everything I n
 Only include information that was explicitly mentioned. Return ONLY valid JSON, no other text."""
 
         try:
-            response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",  # Cheaper model for extraction
+            response = self.client.chat.completions.create(
+                model="llama-3.1-8b-instant",  # Faster model for extraction
                 messages=messages + [{"role": "system", "content": extraction_prompt}],
                 temperature=0,
                 max_tokens=200,

@@ -7,7 +7,7 @@ psycopg2-binary>=2.9.9  # PostgreSQL adapter
 # django-postgis==0.0.1  # PostGIS support - Removed as it's causing issues and not strictly required for basic geo
 
 # Image handling
-Pillow==10.2.0  # Image processing
+Pillow>=10.4.0  # Image processing (updated for Python 3.13 support)
 django-storages==1.14.2  # Cloud storage backends (S3, DigitalOcean Spaces, etc.)
 boto3==1.34.28  # AWS S3 SDK
 
@@ -22,7 +22,7 @@ django-cors-headers>=4.3.1
 pypaystack2>=1.1.0  # Paystack Python SDK
 
 # AI Chatbot
-openai>=1.10.0  # OpenAI API for chatbot
+groq>=0.5.0  # Groq API for chatbot (fast inference)
 
 # Geospatial
 # django-geopy==0.6  # Geocoding - Removed as it's causing issues

@@ -9,7 +9,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-6">
                 <div class="card border-0 shadow">
-                    <div class="card-header text-white text-center py-3" style="background: linear-gradient(135deg, #03045E, #0077B6);">
+                    <div class="card-header text-white text-center py-3" style="background: linear-gradient(135deg, #000814, #003566);">
                         <h4 class="mb-0">
                             <i class="bi bi-credit-card me-2"></i>Confirm Subscription
                         </h4>
@@ -23,7 +23,7 @@
                             </div>
                         {% endif %}
 
-                        <h5 class="mb-3" style="color: #03045E;">Subscription Details</h5>
+                        <h5 class="mb-3" style="color: #000814;">Subscription Details</h5>
 
                         <table class="table table-borderless">
                             <tr>
@@ -36,7 +36,7 @@
                             </tr>
                             <tr>
                                 <td class="fw-bold">Price:</td>
-                                <td class="fs-4 fw-bold" style="color: #0077B6;">{{ plan.currency }} {{ plan.price }}</td>
+                                <td class="fs-4 fw-bold" style="color: #003566;">{{ plan.currency }} {{ plan.price }}</td>
                             </tr>
                             <tr>
                                 <td class="fw-bold">Billing:</td>
@@ -45,11 +45,11 @@
                         </table>
 
                         <div class="border-top pt-3 mb-4">
-                            <h6 class="mb-2" style="color: #03045E;">Plan Features:</h6>
+                            <h6 class="mb-2" style="color: #000814;">Plan Features:</h6>
                             <ul class="list-unstyled">
                                 {% for feature in plan.features %}
                                     <li class="mb-1">
-                                        <i class="bi bi-check-circle-fill me-2" style="color: #00B4D8;"></i>
+                                        <i class="bi bi-check-circle-fill me-2" style="color: #003566;"></i>
                                         {{ feature }}
                                     </li>
                                 {% endfor %}

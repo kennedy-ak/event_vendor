@@ -1,0 +1,130 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Pending Vendors - Admin Panel{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-clock me-2"></i>Pending Vendor Approvals</h4>
+        <p class="text-muted mb-0">Review and approve vendor applications</p>
+    </div>
+    <a href="{% url 'admin_panel:vendors_list' %}" class="btn btn-outline-custom">
+        <i class="bi bi-list me-1"></i> All Vendors
+    </a>
+</div>
+
+<!-- Pending Vendors Table -->
+<div class="admin-table-container">
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead>
+                <tr>
+                    <th>Vendor</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Contact</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendor in page_obj %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if vendor.images_list %}
+                                    <img src="{{ vendor.images_list.0 }}" class="rounded me-2"
+                                         style="width: 48px; height: 48px; object-fit: cover;" alt="{{ vendor.name }}">
+                                {% else %}
+                                    <div class="bg-gradient-secondary rounded me-2 d-flex align-items-center justify-content-center"
+                                         style="width: 48px; height: 48px;">
+                                        <i class="bi bi-shop text-white"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold">{{ vendor.name }}</div>
+                                    <small class="text-muted">{{ vendor.user.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ vendor.category.name }}</td>
+                        <td>
+                            <div>{{ vendor.city }}</div>
+                            <small class="text-muted">{{ vendor.neighborhood }}</small>
+                        </td>
+                        <td>
+                            <div><i class="bi bi-telephone me-1"></i>{{ vendor.phone_number }}</div>
+                            <small class="text-muted">{{ vendor.email }}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ vendor.created_at|timesince }} ago</small>
+                        </td>
+                        <td>
+                            <div class="action-btn-group">
+                                <a href="{% url 'admin_panel:vendor_detail' vendor.id %}"
+                                   class="action-btn action-btn-primary action-btn-sm">
+                                    <i class="bi bi-eye"></i> Review
+                                </a>
+                                <form method="post" action="{% url 'admin_panel:vendor_approve' vendor.id %}"
+                                      class="d-inline" onsubmit="return confirm('Approve {{ vendor.name }}?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn action-btn-success action-btn-sm">
+                                        <i class="bi bi-check-circle"></i> Approve
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-check-circle" style="color: #10b981;"></i>
+                                <p class="mb-0">No pending vendors!</p>
+                                <small class="text-muted">All vendors have been reviewed.</small>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Vendors pagination" class="mt-4">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

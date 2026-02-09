@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel - Events Exclusive{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Admin Panel CSS -->
+    <link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{% url 'admin_panel:dashboard' %}" class="sidebar-brand">
+                    <i class="bi bi-shield-lock-fill me-2"></i>
+                    <span>Admin Panel</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                           href="{% url 'admin_panel:dashboard' %}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <span class="nav-section">People</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'users' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'admin_panel:users_list' %}">
+                            <i class="bi bi-people"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'vendors' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'admin_panel:vendors_list' %}">
+                            <i class="bi bi-shop"></i>
+                            <span>Vendors</span>
+                            {% if pending_count > 0 %}
+                                <span class="badge bg-warning text-dark ms-auto">{{ pending_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <span class="nav-section">Content</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'categories' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'admin_panel:categories_list' %}">
+                            <i class="bi bi-tags"></i>
+                            <span>Categories</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <span class="nav-section">Business</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'billing' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'admin_panel:billing_overview' %}">
+                            <i class="bi bi-credit-card"></i>
+                            <span>Billing</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'leads' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'admin_panel:leads_list' %}">
+                            <i class="bi bi-envelope"></i>
+                            <span>Leads</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <span class="nav-section">AI Tools</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'chatbot' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'admin_panel:chatbot_conversations' %}">
+                            <i class="bi bi-chat-dots"></i>
+                            <span>Chatbot</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-4">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="bi bi-house"></i>
+                            <span>Back to Site</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Top Bar -->
+            <header class="admin-header">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link sidebar-toggle" id="sidebarToggle">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <h5 class="mb-0 ms-3">{% block page_title %}Admin Panel{% endblock %}</h5>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted">
+                        <i class="bi bi-person-circle me-1"></i>
+                        {{ request.user.email }}
+                    </span>
+                    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </header>
+
+            <!-- Messages -->
+            {% if messages %}
+                <div class="container-fluid mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Page Content -->
+            <main class="admin-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

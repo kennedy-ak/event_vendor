@@ -103,11 +103,11 @@
                                 {% for vendor in vendors %}
                                     <div class="list-group-item px-0 py-3 border-bottom">
                                         <div class="d-flex align-items-center">
-                                            {% if vendor.images %}
-                                                <img src="{{ vendor.images.0 }}" class="rounded me-3" 
+                                            {% if vendor.images_list %}
+                                                <img src="{{ vendor.images_list.0 }}" class="rounded me-3"
                                                      style="width: 60px; height: 60px; object-fit: cover;" alt="{{ vendor.name }}">
                                             {% else %}
-                                                <div class="bg-gradient-secondary rounded me-3 d-flex align-items-center justify-content-center" 
+                                                <div class="bg-gradient-secondary rounded me-3 d-flex align-items-center justify-content-center"
                                                      style="width: 60px; height: 60px;">
                                                     <i class="bi bi-shop text-white"></i>
                                                 </div>

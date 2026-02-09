@@ -12,7 +12,7 @@
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 8px; overflow: hidden;">
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%); padding: 30px 20px; text-align: center;">
+                        <td style="background: linear-gradient(135deg, #000814 0%, #003566 100%); padding: 30px 20px; text-align: center;">
                             <h1 style="margin: 0; color: white; font-size: 24px;">🎉 Your Event Recommendations</h1>
                             <p style="margin: 10px 0 0 0; color: white; opacity: 0.9;">Personalized vendors for your {{ conversation.event_type }}</p>
                         </td>
@@ -34,17 +34,17 @@
                     <!-- Recommendations -->
                     <tr>
                         <td style="padding: 20px;">
-                            <h2 style="margin: 0 0 20px 0; color: #03045E; font-size: 18px;">Recommended Vendors</h2>
+                            <h2 style="margin: 0 0 20px 0; color: #000814; font-size: 18px;">Recommended Vendors</h2>
 
                             {% for rec in recommendations %}
                             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 15px; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
                                 <tr>
                                     <td style="padding: 15px;">
-                                        <h3 style="margin: 0 0 5px 0; color: #03045E; font-size: 16px;">{{ rec.vendor.name }}</h3>
+                                        <h3 style="margin: 0 0 5px 0; color: #000814; font-size: 16px;">{{ rec.vendor.name }}</h3>
                                         <p style="margin: 0; color: #6B7280; font-size: 13px;">{{ rec.vendor.category.name }}</p>
                                         <p style="margin: 10px 0; color: #9CA3AF; font-size: 13px; padding: 8px; background-color: #F3F4F6; border-radius: 4px;">💡 {{ rec.reason }}</p>
                                         <p style="margin: 10px 0 0 0;">
-                                            <a href="{{ site_url }}/vendors/{{ rec.vendor.slug }}/" style="display: inline-block; padding: 8px 16px; background-color: #0077B6; color: white; text-decoration: none; border-radius: 6px; font-size: 14px;">View Profile</a>
+                                            <a href="{{ site_url }}/vendors/{{ rec.vendor.slug }}/" style="display: inline-block; padding: 8px 16px; background-color: #003566; color: white; text-decoration: none; border-radius: 6px; font-size: 14px;">View Profile</a>
                                         </p>
                                     </td>
                                 </tr>
@@ -57,7 +57,7 @@
                     <tr>
                         <td style="padding: 20px; text-align: center; background-color: #F8F9FA; border-top: 1px solid #E5E7EB;">
                             <p style="margin: 0 0 10px 0; color: #6B7280; font-size: 14px;">View and manage your recommendations online:</p>
-                            <a href="{{ site_url }}/chatbot/plan-my-event/?code={{ conversation.conversation_code }}" style="display: inline-block; padding: 10px 20px; background-color: #0077B6; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">View Recommendations</a>
+                            <a href="{{ site_url }}/chatbot/plan-my-event/?code={{ conversation.conversation_code }}" style="display: inline-block; padding: 10px 20px; background-color: #003566; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">View Recommendations</a>
                             <p style="margin: 20px 0 0 0; color: #9CA3AF; font-size: 12px;">Ghana Events Marketplace - Your trusted event planning partner</p>
                         </td>
                     </tr>

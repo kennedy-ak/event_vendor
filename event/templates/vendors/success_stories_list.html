@@ -39,8 +39,8 @@
                         {% endif %}
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
-                                {% if story.vendor.images %}
-                                    <img src="{{ story.vendor.images.0 }}" alt="{{ story.vendor.name }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% if story.vendor.images_list %}
+                                    <img src="{{ story.vendor.images_list.0 }}" alt="{{ story.vendor.name }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
                                 {% else %}
                                     <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
                                         <i class="bi bi-shop text-muted"></i>
@@ -77,8 +77,8 @@
                                 <h2 class="fw-bold mb-3">{{ story.title }}</h2>
                                 
                                 <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
-                                    {% if story.vendor.images %}
-                                        <img src="{{ story.vendor.images.0 }}" alt="{{ story.vendor.name }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                    {% if story.vendor.images_list %}
+                                        <img src="{{ story.vendor.images_list.0 }}" alt="{{ story.vendor.name }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
                                     {% else %}
                                         <div class="rounded bg-white d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
                                             <i class="bi bi-shop text-muted fs-4"></i>

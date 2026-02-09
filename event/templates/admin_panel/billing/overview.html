@@ -1,0 +1,197 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Billing Overview - Admin Panel{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Revenue Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">GHS {{ total_revenue|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">GHS {{ subscription_revenue|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Subscription Revenue</div>
+                </div>
+                <div class="stat-icon bg-pale text-primary-custom">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">GHS {{ boost_revenue|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Boost Revenue</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <i class="bi bi-star"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Revenue Chart -->
+    <div class="col-lg-8">
+        <div class="chart-container">
+            <h6><i class="bi bi-graph-up me-2"></i>Monthly Revenue (Last 6 Months)</h6>
+            <canvas id="revenueChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <!-- Active Subscriptions by Plan -->
+    <div class="col-lg-4">
+        <div class="chart-container">
+            <h6><i class="bi bi-layers me-2"></i>Active Subscriptions by Plan</h6>
+            <div class="mt-4">
+                {% for plan in subscriptions_by_plan %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>{{ plan.display_name }}</span>
+                        <strong class="text-primary-custom">{{ plan.active_count }}</strong>
+                    </div>
+                {% empty %}
+                    <p class="text-muted mb-0">No active subscriptions</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Boosts -->
+<div class="admin-table-container">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-star me-2"></i>Active Featured Boosts</h6>
+        <a href="{% url 'admin_panel:boosts_list' %}" class="btn btn-sm btn-outline-custom">View All</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table mb-0">
+            <thead>
+                <tr>
+                    <th>Vendor</th>
+                    <th>Type</th>
+                    <th>Period</th>
+                    <th>Price</th>
+                    <th>Analytics</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for boost in active_boosts %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'admin_panel:vendor_detail' boost.vendor.id %}">
+                                {{ boost.vendor.name }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ boost.get_type_display }}</span>
+                        </td>
+                        <td>
+                            <small>{{ boost.start_date|date:"M d" }} - {{ boost.end_date|date:"M d" }}</small>
+                        </td>
+                        <td>GHS {{ boost.price }}</td>
+                        <td>
+                            <small>
+                                <i class="bi bi-eye me-1"></i>{{ boost.impressions }}
+                                <i class="bi bi-hand-index ms-2 me-1"></i>{{ boost.clicks }}
+                            </small>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="bi bi-star"></i>
+                                <p class="mb-0">No active boosts</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Revenue Chart
+const ctx = document.getElementById('revenueChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [{% for item in monthly_data %}'{{ item.month }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [
+            {
+                label: 'Subscriptions',
+                data: [{% for item in monthly_data %}{{ item.subscription_revenue }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: '#00B4D8',
+                borderRadius: 4
+            },
+            {
+                label: 'Boosts',
+                data: [{% for item in monthly_data %}{{ item.boost_revenue }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: '#f59e0b',
+                borderRadius: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                backgroundColor: '#03045E',
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': GHS ' + context.parsed.y.toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                stacked: true,
+                grid: {
+                    display: false
+                }
+            },
+            y: {
+                stacked: true,
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                    callback: function(value) {
+                        return 'GHS ' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

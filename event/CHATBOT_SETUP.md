@@ -6,7 +6,7 @@ Your Ghana Events Marketplace now has an intelligent AI-powered chatbot that hel
 
 ## Features Implemented
 
-✅ **Conversational AI** - Natural conversation using OpenAI GPT-4
+✅ **Conversational AI** - Natural conversation using Groq (Llama 3.3)
 ✅ **Smart Questions** - Collects event type, date, budget, location, guest count, and requirements
 ✅ **Vendor Recommendations** - AI matches users with perfect vendors from your database
 ✅ **Floating Widget** - Chat bubble appears on every page
@@ -20,17 +20,17 @@ Your Ghana Events Marketplace now has an intelligent AI-powered chatbot that hel
 
 ## Setup Instructions
 
-### Step 1: Install OpenAI Package
+### Step 1: Install Groq Package
 
-Add the OpenAI Python package to your project:
+Add the Groq Python package to your project:
 
 ```bash
-pip install openai
+pip install groq
 ```
 
 Or add to your `requirements.txt`:
 ```
-openai==1.10.0
+groq>=0.5.0
 ```
 
 Then install:
@@ -38,13 +38,13 @@ Then install:
 pip install -r requirements.txt
 ```
 
-### Step 2: Get OpenAI API Key
+### Step 2: Get Groq API Key
 
-1. Go to [https://platform.openai.com](https://platform.openai.com)
+1. Go to [https://console.groq.com](https://console.groq.com)
 2. Sign up or log in
 3. Go to **API Keys** section
-4. Click **"Create new secret key"**
-5. Copy the key (starts with `sk-proj-...`)
+4. Click **"Create Key"**
+5. Copy the key (starts with `gsk-...`)
 
 **Important:** Keep this key secret! Never commit it to Git.
 
@@ -57,11 +57,11 @@ Create or edit your `.env` file:
 cp .env.example .env
 ```
 
-Edit `.env` and add your OpenAI API key:
+Edit `.env` and add your Groq API key:
 
 ```env
-# OpenAI API (AI Chatbot)
-OPENAI_API_KEY=sk-proj-YOUR-ACTUAL-API-KEY-HERE
+# Groq API (AI Chatbot)
+GROQ_API_KEY=gsk-YOUR-ACTUAL-API-KEY-HERE
 ```
 
 ### Step 4: Run Database Migrations
@@ -163,53 +163,58 @@ Edit `chatbot/ai_service.py` to modify:
 - Change number of recommendations
 - Modify scoring system
 
+### Model Selection
+
+Groq offers several fast models. In `chatbot/ai_service.py`:
+
+**For Conversational AI:**
+```python
+self.model = "llama-3.3-70b-versatile"  # High quality
+# or
+self.model = "llama-3.1-8b-instant"  # Faster, lower cost
+```
+
+**For Data Extraction:**
+```python
+model="llama-3.1-8b-instant"  # Already optimized for speed
+```
+
 ### Cost Management
 
-OpenAI API charges per token used:
+Groq offers free tier with generous limits. Paid tiers are very affordable:
 
 **Estimated Costs:**
-- GPT-4 Turbo: ~$0.01-0.03 per conversation
-- GPT-3.5 Turbo: ~$0.001-0.005 per conversation
+- Llama 3.3 70B: ~$0.00059 per 1M tokens (very low!)
+- Llama 3.1 8B: ~$0.00005 per 1M tokens (extremely low!)
 
-**To Reduce Costs:**
+**Typical conversation cost:**
+- ~$0.00001-0.00003 per conversation (essentially free!)
 
-1. **Use GPT-3.5 instead of GPT-4:**
-
-   In `chatbot/ai_service.py`, change:
-   ```python
-   self.model = "gpt-3.5-turbo"  # Was "gpt-4-turbo-preview"
-   ```
-
-2. **Set Usage Limits:**
-   - Go to OpenAI dashboard
-   - Set monthly spending limit
-   - Get email alerts
-
-3. **Monitor Usage:**
-   ```
-   https://platform.openai.com/usage
-   ```
+**To Monitor Usage:**
+```
+https://console.groq.com/usage
+```
 
 ---
 
 ## Troubleshooting
 
-### Error: "No module named 'openai'"
+### Error: "No module named 'groq'"
 **Solution:** Install the package:
 ```bash
-pip install openai
+pip install groq
 ```
 
-### Error: "OpenAI API key not found"
+### Error: "Groq API key not found"
 **Solution:** Check your .env file has:
 ```env
-OPENAI_API_KEY=sk-proj-...
+GROQ_API_KEY=gsk-...
 ```
 
 ### Chatbot not responding
 **Solution:** Check:
-1. OpenAI API key is valid
-2. You have credits/billing set up on OpenAI
+1. Groq API key is valid
+2. You have access to Groq's free tier
 3. Check Django logs for errors
 
 ### No recommendations showing
@@ -274,7 +279,7 @@ The chatbot provides these API endpoints:
 
 1. **Test thoroughly** with different event types
 2. **Gather feedback** from real users
-3. **Monitor costs** and adjust model if needed
+3. **Monitor costs** (should be minimal with Groq)
 4. **Analyze data** to improve recommendations
 5. **Add more features** (PDF export, WhatsApp, etc.)
 
@@ -285,12 +290,36 @@ The chatbot provides these API endpoints:
 If you encounter issues:
 
 1. Check Django logs: `python manage.py runserver`
-2. Check OpenAI status: https://status.openai.com
+2. Check Groq status: https://status.groq.com
 3. Review conversation in admin panel
-4. Check your OpenAI usage dashboard
+4. Check your Groq usage dashboard
+
+---
+
+## Groq vs OpenAI
+
+### Why Groq?
+
+**Speed:** Groq's LPU (Language Processing Unit) provides 10x faster inference than traditional GPUs.
+
+**Cost:** Groq is significantly cheaper than OpenAI, with a generous free tier.
+
+**Models:** Groq hosts open-source models like Llama 3.3, Mixtral, and Gemma.
+
+**Privacy:** Groq doesn't train on your data, unlike some other providers.
+
+### Model Comparison
+
+| Feature | Groq (Llama 3.3) | OpenAI (GPT-4) |
+|---------|------------------|----------------|
+| Speed | ~10x faster | Standard |
+| Cost | ~$0.00059/1M tokens | ~$30/1M tokens |
+| Quality | Excellent | Excellent |
+| Privacy | No data training | Data may be used for training |
+| Free Tier | Yes | No |
 
 ---
 
 **Congratulations! Your AI Event Planner is ready! 🎉**
 
-Users can now get intelligent, personalized vendor recommendations through natural conversation.
+Users can now get intelligent, personalized vendor recommendations through natural conversation, powered by Groq's ultra-fast AI inference.

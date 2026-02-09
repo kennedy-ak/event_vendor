@@ -30,6 +30,8 @@ def register_view(request):
 def login_view(request):
     """User login view"""
     if request.user.is_authenticated:
+        if request.user.role == 'admin':
+            return redirect('admin_panel:dashboard')
         return redirect('home')
 
     if request.method == 'POST':
@@ -39,7 +41,9 @@ def login_view(request):
             login(request, user)
             messages.success(request, f'Welcome back, {user.username}!')
 
-            # Redirect to next parameter or home
+            # Redirect admins to dashboard, others to next parameter or home
+            if user.role == 'admin':
+                return redirect('admin_panel:dashboard')
             next_url = request.GET.get('next', 'home')
             return redirect(next_url)
     else:

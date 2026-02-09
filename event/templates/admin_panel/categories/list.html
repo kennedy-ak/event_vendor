@@ -1,0 +1,195 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Categories - Admin Panel{% endblock %}
+
+{% block content %}
+<!-- Create Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">Categories</h4>
+        <p class="text-muted mb-0">Manage event vendor categories and their images</p>
+    </div>
+    <a href="{% url 'admin_panel:category_create' %}" class="btn btn-primary-custom action-btn">
+        <i class="bi bi-plus-lg"></i> Create Category
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="admin-filters">
+    <form method="get" class="row g-3">
+        <div class="col-md-10">
+            <label for="search">Search Categories</label>
+            <input type="text" class="form-control" id="search" name="search"
+                   placeholder="Search by name or description..." value="{{ search_query }}">
+        </div>
+        <div class="col-md-2">
+            <label>&nbsp;</label>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary-custom action-btn">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <a href="{% url 'admin_panel:categories_list' %}" class="btn btn-outline-custom action-btn">
+                    <i class="bi bi-x-circle"></i> Clear
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Categories Table -->
+<div class="admin-table-container">
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Description</th>
+                    <th>Vendors</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in page_obj %}
+                    <tr>
+                        <td>
+                            {% if category.image %}
+                                <img src="{{ category.image.url }}" class="rounded"
+                                     style="width: 50px; height: 50px; object-fit: cover;" alt="{{ category.name }}">
+                            {% elif category.icon %}
+                                <span style="font-size: 28px;">{{ category.icon }}</span>
+                            {% else %}
+                                <div class="bg-gradient-secondary rounded d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px;">
+                                    <i class="bi bi-tag text-white"></i>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ category.name }}</div>
+                        </td>
+                        <td>
+                            <code class="text-muted">{{ category.slug }}</code>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 250px;">
+                                {{ category.description|default:"<span class='text-muted'>No description</span>" }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">
+                                <i class="bi bi-shop"></i> {{ category.vendor_count }}
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ category.created_at|date:"M d, Y" }}</small>
+                        </td>
+                        <td>
+                            <div class="action-btn-group">
+                                <a href="{% url 'admin_panel:category_edit' category.id %}"
+                                   class="action-btn action-btn-warning action-btn-sm">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <button type="button"
+                                        onclick="confirmDeleteCategory('{{ category.id }}', '{{ category.name }}', {{ category.vendor_count }})"
+                                        class="action-btn action-btn-danger action-btn-sm"
+                                        {% if category.vendor_count > 0 %}disabled title="Cannot delete category with vendors"{% endif %}>
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="bi bi-tags"></i>
+                                <p class="mb-0">No categories found</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Categories pagination" class="mt-4">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="categoryName"></strong>?</p>
+                <p class="text-danger mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const deleteUrlTemplate = "{% url 'admin_panel:category_delete' '00000000-0000-0000-0000-000000000000' %}";
+
+function confirmDeleteCategory(categoryId, categoryName, vendorCount) {
+    if (vendorCount > 0) {
+        alert('Cannot delete category with vendors. Please reassign vendors first.');
+        return;
+    }
+    document.getElementById('categoryName').textContent = categoryName;
+    document.getElementById('deleteForm').action = deleteUrlTemplate.replace('00000000-0000-0000-0000-000000000000', categoryId);
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

@@ -12,6 +12,7 @@ dependencies = [
     "crispy-bootstrap5>=2.0.0",
     "python-dotenv>=1.0.0",
     "django-cors-headers>=4.9.0",
+    "groq>=1.0.0",
 ]
 
 [project.optional-dependencies]

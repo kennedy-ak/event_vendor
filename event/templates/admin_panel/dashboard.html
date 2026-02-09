@@ -1,0 +1,264 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Dashboard - Admin Panel{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ total_users }}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-icon bg-pale text-primary-custom">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ total_vendors }}</div>
+                    <div class="stat-label">Total Vendors</div>
+                </div>
+                <div class="stat-icon bg-pale text-primary-custom">
+                    <i class="bi bi-shop"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ total_leads }}</div>
+                    <div class="stat-label">Total Leads</div>
+                </div>
+                <div class="stat-icon bg-pale text-primary-custom">
+                    <i class="bi bi-envelope"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-left-color: #10b981;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">GHS {{ total_revenue|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Vendors Alert -->
+{% if pending_vendors > 0 %}
+<div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>{{ pending_vendors }} vendor{{ pending_vendors|pluralize }} waiting for approval.</strong>
+    <a href="{% url 'admin_panel:vendors_pending' %}" class="alert-link">Review now</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Revenue Chart & Quick Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="chart-container">
+            <h6><i class="bi bi-graph-up me-2"></i>Revenue Trend (Last 6 Months)</h6>
+            <canvas id="revenueChart" height="120"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="chart-container">
+            <h6><i class="bi bi-pie-chart me-2"></i>Revenue Breakdown</h6>
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Subscriptions</span>
+                    <strong class="text-primary-custom">GHS {{ subscription_revenue|floatformat:0|intcomma }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Featured Boosts</span>
+                    <strong class="text-warning">GHS {{ boost_revenue|floatformat:0|intcomma }}</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Total</span>
+                    <strong class="text-success">GHS {{ total_revenue|floatformat:0|intcomma }}</strong>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Active Subscriptions</span>
+                    <strong>{{ active_subscriptions }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="activity-card">
+            <h6><i class="bi bi-shop me-2"></i>Recent Vendors</h6>
+            {% if recent_vendors %}
+                {% for vendor in recent_vendors %}
+                    <div class="activity-item">
+                        <div class="activity-icon bg-pale text-primary-custom">
+                            <i class="bi bi-shop"></i>
+                        </div>
+                        <div class="activity-content">
+                            <strong>{{ vendor.name }}</strong>
+                            <small>{{ vendor.category.name }} • {{ vendor.city }}</small>
+                            <small class="text-muted">{{ vendor.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-shop"></i>
+                    <p class="mb-0">No new vendors yet</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="activity-card">
+            <h6><i class="bi bi-envelope me-2"></i>Recent Leads</h6>
+            {% if recent_leads %}
+                {% for lead in recent_leads %}
+                    <div class="activity-item">
+                        <div class="activity-icon bg-pale text-primary-custom">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                        <div class="activity-content">
+                            <strong>{{ lead.name }}</strong>
+                            <small>for {{ lead.vendor.name }}</small>
+                            <small class="text-muted">{{ lead.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-envelope"></i>
+                    <p class="mb-0">No new leads yet</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="activity-card">
+            <h6><i class="bi bi-credit-card me-2"></i>Recent Subscriptions</h6>
+            {% if recent_subscriptions %}
+                {% for subscription in recent_subscriptions %}
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+                        <div class="activity-content">
+                            <strong>{{ subscription.vendor.name }}</strong>
+                            <small>{{ subscription.plan.display_name }} • GHS {{ subscription.price }}</small>
+                            <small class="text-muted">{{ subscription.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-credit-card"></i>
+                    <p class="mb-0">No new subscriptions yet</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Revenue Chart
+const ctx = document.getElementById('revenueChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in monthly_revenue %}'{{ item.month }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Revenue (GHS)',
+            data: [{% for item in monthly_revenue %}{{ item.revenue }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: '#00B4D8',
+            backgroundColor: 'rgba(0, 180, 216, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#00B4D8',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#03045E',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                padding: 12,
+                displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        return 'GHS ' + context.parsed.y.toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                    callback: function(value) {
+                        return 'GHS ' + value.toLocaleString();
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Sidebar Toggle
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('show');
+    });
+}
+</script>
+{% endblock %}

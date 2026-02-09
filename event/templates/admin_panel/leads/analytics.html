@@ -1,0 +1,222 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Leads Analytics - Admin Panel{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-graph-up me-2"></i>Leads Analytics</h4>
+        <p class="text-muted mb-0">Track lead performance and metrics</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'admin_panel:leads_list' %}" class="btn btn-outline-custom">
+            <i class="bi bi-list me-1"></i> All Leads
+        </a>
+        <a href="{% url 'admin_panel:leads_export' %}" class="btn btn-success">
+            <i class="bi bi-download me-1"></i> Export CSV
+        </a>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ total_leads }}</div>
+                    <div class="stat-label">Total Leads</div>
+                </div>
+                <div class="stat-icon bg-pale text-primary-custom">
+                    <i class="bi bi-envelope"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ closed_leads }}</div>
+                    <div class="stat-label">Closed Leads</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ conversion_rate }}%</div>
+                    <div class="stat-label">Conversion Rate</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ unbilled_count }}</div>
+                    <div class="stat-label">Unbilled</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Leads Over Time -->
+    <div class="col-lg-8">
+        <div class="chart-container">
+            <h6><i class="bi bi-calendar-week me-2"></i>Leads Over Time (Last 30 Days)</h6>
+            <canvas id="leadsChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <!-- Leads by Status -->
+    <div class="col-lg-4">
+        <div class="chart-container">
+            <h6><i class="bi bi-pie-chart me-2"></i>Leads by Status</h6>
+            <canvas id="statusChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Top Vendors by Leads -->
+<div class="admin-table-container">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-trophy me-2"></i>Top 10 Vendors by Lead Count</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table mb-0">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Vendor</th>
+                    <th>Category</th>
+                    <th>Leads</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendor in top_vendors %}
+                    <tr>
+                        <td>
+                            <span class="badge {% if forloop.counter <= 3 %}bg-warning text-dark{% else %}bg-light text-dark{% endif %}">
+                                #{{ forloop.counter }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'admin_panel:vendor_detail' vendor.id %}">
+                                {{ vendor.name }}
+                            </a>
+                        </td>
+                        <td>{{ vendor.category.name }}</td>
+                        <td><strong>{{ vendor.leads_count }}</strong></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class="bi bi-shop"></i>
+                                <p class="mb-0">No vendors found</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Leads Over Time Chart
+const leadsCtx = document.getElementById('leadsChart').getContext('2d');
+new Chart(leadsCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in leads_over_time %}'{{ item.date }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Leads',
+            data: [{% for item in leads_over_time %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: '#00B4D8',
+            backgroundColor: 'rgba(0, 180, 216, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#00B4D8',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45
+                }
+            }
+        }
+    }
+});
+
+// Status Distribution Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusLabels = [{% for item in leads_by_status %}'{{ item.status|title }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+const statusData = [{% for item in leads_by_status %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+const statusColors = ['#f59e0b', '#0077B6', '#10b981'];
+
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: statusLabels,
+        datasets: [{
+            data: statusData,
+            backgroundColor: statusColors,
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

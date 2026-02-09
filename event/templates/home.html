@@ -5,6 +5,15 @@
 
 {% block extra_css %}
 <style>
+/* Category image styling */
+.category-icon-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
 /* Mobile: add visible border around each category card */
 @media (max-width: 768px) {
   .category-card {
@@ -86,7 +95,11 @@
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <a href="{% url 'category_vendors' category.slug %}" class="text-decoration-none">
                         <div class="category-card">
-                            <span class="icon">{{ category.icon|default:"🎉" }}</span>
+                            {% if category.image %}
+                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-icon-img">
+                            {% else %}
+                                <span class="icon">{{ category.icon|default:"🎉" }}</span>
+                            {% endif %}
                             <h5>{{ category.name }}</h5>
                             <p>{{ category.description|truncatewords:8 }}</p>
                         </div>
@@ -113,8 +126,8 @@
             {% for vendor in featured_vendors %}
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <div class="vendor-card">
-                        {% if vendor.images %}
-                            <img src="{{ vendor.images.0 }}" class="card-img-top" alt="{{ vendor.name }}">
+                        {% if vendor.images_list %}
+                            <img src="{{ vendor.images_list.0 }}" class="card-img-top" alt="{{ vendor.name }}">
                         {% else %}
                             <div class="card-img-top bg-gradient-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
                                 <i class="bi bi-shop text-white" style="font-size: 4rem;"></i>

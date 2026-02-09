@@ -15,6 +15,7 @@ urlpatterns = [
 
     # Vendor Management
     path('vendors/', views.vendors_list_view, name='vendors_list'),
+    path('vendors/create/', views.vendor_create_view, name='vendor_create'),
     path('vendors/pending/', views.vendors_pending_view, name='vendors_pending'),
     path('vendors/<uuid:vendor_id>/', views.vendor_detail_view, name='vendor_detail'),
     path('vendors/<uuid:vendor_id>/edit/', views.vendor_edit_view, name='vendor_edit'),
@@ -22,6 +23,12 @@ urlpatterns = [
     path('vendors/<uuid:vendor_id>/approve/', views.vendor_approve_view, name='vendor_approve'),
     path('vendors/<uuid:vendor_id>/suspend/', views.vendor_suspend_view, name='vendor_suspend'),
     path('vendors/<uuid:vendor_id>/verify/', views.vendor_verify_view, name='vendor_verify'),
+
+    # Category Management
+    path('categories/', views.categories_list_view, name='categories_list'),
+    path('categories/create/', views.category_create_view, name='category_create'),
+    path('categories/<uuid:category_id>/edit/', views.category_edit_view, name='category_edit'),
+    path('categories/<uuid:category_id>/delete/', views.category_delete_view, name='category_delete'),
 
     # Billing & Subscriptions
     path('billing/', views.billing_overview_view, name='billing_overview'),

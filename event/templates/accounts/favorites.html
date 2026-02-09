@@ -39,9 +39,9 @@
                                     data-vendor-id="{{ vendor.id }}" data-toggle-url="{% url 'toggle_favorite' vendor.id %}" style="z-index: 10; width: 36px; height: 36px;">
                                 <i class="bi bi-heart-fill text-danger"></i>
                             </button>
-                            
-                            {% if vendor.images %}
-                                <img src="{{ vendor.images.0 }}" class="card-img-top" alt="{{ vendor.name }}">
+
+                            {% if vendor.images_list %}
+                                <img src="{{ vendor.images_list.0 }}" class="card-img-top" alt="{{ vendor.name }}">
                             {% else %}
                                 <div class="card-img-top bg-gradient-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
                                     <i class="bi bi-shop text-white" style="font-size: 4rem;"></i>

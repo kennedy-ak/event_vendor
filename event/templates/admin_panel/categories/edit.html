@@ -1,0 +1,255 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Edit Category - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="mb-1">Edit Category</h4>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel:categories_list' %}">Categories</a></li>
+                    <li class="breadcrumb-item active">{{ category.name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'admin_panel:categories_list' %}" class="btn btn-outline-custom">
+                <i class="bi bi-arrow-left"></i> Back to Categories
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="admin-content-card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Edit Category: {{ category.name }}</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Basic Information -->
+            <h6 class="section-title">Basic Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Category Name *</label>
+                    <input type="text" class="form-control" id="name" name="name"
+                           value="{{ category.name }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="slug" class="form-label">Slug *</label>
+                    <input type="text" class="form-control" id="slug" name="slug"
+                           value="{{ category.slug }}" required>
+                    <div class="form-text">URL-friendly version of the name</div>
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description"
+                              rows="3">{{ category.description }}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label for="icon" class="form-label">Icon (Fallback)</label>
+                    <input type="text" class="form-control" id="icon" name="icon"
+                           value="{{ category.icon }}">
+                    <div class="form-text">Emoji or icon name used when no image is uploaded</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="image" class="form-label">Category Image</label>
+                    <input type="file" class="form-control" id="image" name="image"
+                           accept="image/*">
+                    <div class="form-text">Upload a new image to replace the current one</div>
+                </div>
+
+                <!-- Current Image Display -->
+                <div class="col-12">
+                    <label class="form-label">Current Image</label>
+                    <div class="row g-3">
+                        {% if category.image %}
+                            <div class="col-md-4">
+                                <div class="image-preview-card">
+                                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="image-preview-img">
+                                    <div class="image-overlay">
+                                        <span class="image-label">Current</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8 d-flex align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="remove_image" name="remove_image">
+                                    <label class="form-check-label" for="remove_image">
+                                        <strong>Remove current image</strong>
+                                    </label>
+                                    <div class="form-text text-warning">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        This will permanently delete the current image. The icon will be used instead.
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif category.icon %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    No image uploaded. Currently using icon:
+                                    <span style="font-size: 24px; margin-left: 10px;">{{ category.icon }}</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    No image or icon set for this category.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- New Image Preview -->
+                <div class="col-12">
+                    <label class="form-label">New Image Preview</label>
+                    <div id="imagePreviewContainer" class="text-center p-3 border rounded bg-light" style="display: none;">
+                        <img id="imagePreview" src="" alt="Preview" class="img-fluid rounded"
+                             style="max-width: 300px; max-height: 200px; object-fit: contain;">
+                        <p class="mb-0 mt-2 text-muted">New image that will be uploaded</p>
+                    </div>
+                    <div id="noPreview" class="text-center p-4 border rounded bg-light text-muted">
+                        <i class="bi bi-image" style="font-size: 48px;"></i>
+                        <p class="mb-0 mt-2">No new image selected</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Stats -->
+            <h6 class="section-title">Category Statistics</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title mb-1">Vendors</h6>
+                            <h3 class="mb-0">{{ category.vendors.count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title mb-1">Created</h6>
+                            <h5 class="mb-0">{{ category.created_at|date:"M d, Y" }}</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title mb-1">Last Updated</h6>
+                            <h5 class="mb-0">{{ category.updated_at|date:"M d, Y" }}</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-between pt-3 border-top">
+                <a href="{% url 'admin_panel:categories_list' %}" class="btn btn-outline-custom">
+                    Cancel
+                </a>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_panel:categories_list' %}" class="btn btn-secondary">
+                        Back to Categories
+                    </a>
+                    <button type="submit" class="btn btn-primary-custom">
+                        <i class="bi bi-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.section-title {
+    color: #0D6EFD;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #0D6EFD;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.image-preview-card {
+    position: relative;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+}
+
+.image-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+}
+
+.image-label {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+</style>
+
+<script>
+// Image preview
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const preview = document.getElementById('imagePreview');
+    const noPreview = document.getElementById('noPreview');
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            previewContainer.style.display = 'block';
+            noPreview.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewContainer.style.display = 'none';
+        noPreview.style.display = 'block';
+    }
+});
+
+// Uncheck remove_image checkbox if a new image is selected
+document.getElementById('image').addEventListener('change', function(e) {
+    if (e.target.files.length > 0) {
+        const removeCheckbox = document.getElementById('remove_image');
+        if (removeCheckbox) {
+            removeCheckbox.checked = false;
+        }
+    }
+});
+</script>
+{% endblock %}

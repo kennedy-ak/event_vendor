@@ -15,6 +15,7 @@ from vendors.models import Vendor
 from billing.models import Subscription, Boost, SubscriptionPlan
 from leads.models import Lead
 from chatbot.models import ChatConversation, ChatMessage, ChatRecommendation
+from categories.models import Category
 
 from .decorators import admin_required
 
@@ -241,6 +242,125 @@ def user_change_role_view(request, user_id):
 # ============================================================================
 
 @admin_required
+def vendor_create_view(request):
+    """Create a new vendor"""
+    if request.method == 'POST':
+        # Get form data
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        address = request.POST.get('address')
+        city = request.POST.get('city', 'Accra')
+        neighborhood = request.POST.get('neighborhood', '')
+        phone_number = request.POST.get('phone_number')
+        email = request.POST.get('email')
+        website = request.POST.get('website', '')
+        price_tier = request.POST.get('price_tier', 'medium')
+        estimated_price_range = request.POST.get('estimated_price_range', '')
+        status = request.POST.get('status', 'pending')
+        verified = request.POST.get('verified') == 'on'
+
+        # Get category
+        from categories.models import Category
+        category_id = request.POST.get('category')
+        if not category_id:
+            messages.error(request, 'Please select a category.')
+            return redirect('admin_panel:vendor_create')
+
+        try:
+            category = Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            messages.error(request, 'Invalid category selected.')
+            return redirect('admin_panel:vendor_create')
+
+        # Get or create user for vendor
+        user_email = request.POST.get('user_email')
+        if not user_email:
+            messages.error(request, 'User email is required.')
+            return redirect('admin_panel:vendor_create')
+
+        try:
+            user = User.objects.get(email=user_email)
+        except User.DoesNotExist:
+            # Create new user account
+            import uuid
+            from django.contrib.auth.hashers import make_password
+            temp_password = User.objects.make_random_password()
+            user = User.objects.create(
+                email=user_email,
+                username=user_email.split('@')[0],
+                role='vendor',
+                is_active=True,
+            )
+            user.set_password(temp_password)
+            user.save()
+            messages.info(request, f'Created new user account for {user_email}. Temporary password: {temp_password}')
+
+        # Create vendor
+        import json
+        vendor = Vendor.objects.create(
+            user=user,
+            category=category,
+            name=name,
+            description=description,
+            address=address,
+            city=city,
+            neighborhood=neighborhood,
+            phone_number=phone_number,
+            email=email,
+            website=website,
+            price_tier=price_tier,
+            estimated_price_range=estimated_price_range,
+            status=status,
+            verified=verified,
+            images=[]
+        )
+
+        # Handle images
+        import os
+        new_images = request.FILES.getlist('images')
+        if new_images:
+            current_images = []
+            for image in new_images:
+                # Generate unique filename
+                ext = image.name.split('.')[-1]
+                filename = f"{uuid.uuid4()}.{ext}"
+
+                # Create vendor directory
+                from django.conf import settings
+                vendor_dir = os.path.join(settings.MEDIA_ROOT, 'vendors', str(vendor.id))
+                os.makedirs(vendor_dir, exist_ok=True)
+
+                # Save file
+                file_path = os.path.join(vendor_dir, filename)
+                with open(file_path, 'wb') as f:
+                    for chunk in image.chunks():
+                        f.write(chunk)
+
+                # Add to images list
+                image_url = f"{settings.MEDIA_URL}vendors/{vendor.id}/{filename}"
+                current_images.append(image_url)
+
+            vendor.images = current_images
+            vendor.save()
+
+        messages.success(request, f'Vendor "{name}" has been created successfully.')
+        return redirect('admin_panel:vendor_detail', vendor_id=vendor.id)
+
+    # Get categories and plans for dropdowns
+    from categories.models import Category
+    categories = Category.objects.all()
+    plans = SubscriptionPlan.objects.all()
+
+    context = {
+        'categories': categories,
+        'plans': plans,
+        'page_title': 'Create Vendor',
+    }
+
+    return render(request, 'admin_panel/vendors/create.html', context)
+
+
+@admin_required
 def vendors_list_view(request):
     """List all vendors with filtering and pagination"""
     # Get filters
@@ -441,28 +561,46 @@ def vendor_edit_view(request, vendor_id):
         # Handle images
         import os
         import uuid
+        import json
         from django.conf import settings
 
-        # Get current images
-        current_images = vendor.images.copy() if vendor.images else []
+        # Get current images - handle both list and string representations
+        if vendor.images:
+            # If images is a string, parse it as JSON
+            if isinstance(vendor.images, str):
+                try:
+                    current_images = json.loads(vendor.images)
+                except (json.JSONDecodeError, TypeError):
+                    current_images = []
+            # If images is already a list, make a copy
+            elif isinstance(vendor.images, list):
+                current_images = vendor.images.copy()
+            else:
+                current_images = []
+        else:
+            current_images = []
 
         # Remove images marked for deletion
-        removed_images_json = request.POST.get('removed_images')
-        if removed_images_json:
-            import json
+        removed_images_json = request.POST.get('removed_images', '')
+        # Clean up the input - sometimes form data gets double-encoded
+        removed_images_json = removed_images_json.strip()
+        if removed_images_json and removed_images_json not in ['', '[]', 'null']:
             try:
                 removed_images = json.loads(removed_images_json)
-                for img_url in removed_images:
-                    if img_url in current_images:
-                        current_images.remove(img_url)
-                        # Try to delete the file from filesystem
-                        try:
-                            file_path = os.path.join(settings.MEDIA_ROOT, img_url.replace(settings.MEDIA_URL, ''))
-                            if os.path.exists(file_path):
-                                os.remove(file_path)
-                        except:
-                            pass
-            except json.JSONDecodeError:
+                # Ensure we have a list
+                if isinstance(removed_images, list):
+                    for img_url in removed_images:
+                        if img_url in current_images:
+                            current_images.remove(img_url)
+                            # Try to delete the file from filesystem
+                            try:
+                                file_path = os.path.join(settings.MEDIA_ROOT, img_url.replace(settings.MEDIA_URL, ''))
+                                if os.path.exists(file_path):
+                                    os.remove(file_path)
+                            except:
+                                pass
+            except (json.JSONDecodeError, TypeError, ValueError):
+                # Silently ignore malformed JSON - log if needed
                 pass
 
         # Add new images
@@ -827,6 +965,184 @@ def lead_mark_billed_view(request, lead_id):
     messages.success(request, f'Lead from {lead.name} has been marked as billed.')
 
     return redirect('admin_panel:leads_list')
+
+
+# ============================================================================
+# CATEGORY MANAGEMENT
+# ============================================================================
+
+@admin_required
+def categories_list_view(request):
+    """List all categories with search and pagination"""
+    search_query = request.GET.get('search', '')
+
+    # Base queryset
+    categories = Category.objects.all().order_by('name')
+
+    # Apply search filter
+    if search_query:
+        categories = categories.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    # Get vendor counts for each category
+    from django.db.models import Count
+    categories = categories.annotate(vendor_count=Count('vendors'))
+
+    # Pagination
+    paginator = Paginator(categories, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'page_title': 'Categories',
+    }
+
+    return render(request, 'admin_panel/categories/list.html', context)
+
+
+@admin_required
+def category_create_view(request):
+    """Create a new category"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        slug = request.POST.get('slug')
+        description = request.POST.get('description', '')
+        icon = request.POST.get('icon', '')
+
+        # Validate required fields
+        if not name or not slug:
+            messages.error(request, 'Name and slug are required.')
+            return render(request, 'admin_panel/categories/create.html', {
+                'page_title': 'Create Category',
+            })
+
+        # Check if slug already exists
+        if Category.objects.filter(slug=slug).exists():
+            messages.error(request, 'A category with this slug already exists.')
+            return render(request, 'admin_panel/categories/create.html', {
+                'page_title': 'Create Category',
+            })
+
+        # Create category
+        category = Category.objects.create(
+            name=name,
+            slug=slug,
+            description=description,
+            icon=icon
+        )
+
+        # Handle image upload
+        if 'image' in request.FILES:
+            category.image = request.FILES['image']
+            category.save()
+
+        messages.success(request, f'Category "{name}" has been created successfully.')
+        return redirect('admin_panel:categories_list')
+
+    return render(request, 'admin_panel/categories/create.html', {
+        'page_title': 'Create Category',
+    })
+
+
+@admin_required
+def category_edit_view(request, category_id):
+    """Edit category information"""
+    category = get_object_or_404(Category, id=category_id)
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        slug = request.POST.get('slug')
+        description = request.POST.get('description', '')
+        icon = request.POST.get('icon', '')
+
+        # Validate required fields
+        if not name or not slug:
+            messages.error(request, 'Name and slug are required.')
+            return render(request, 'admin_panel/categories/edit.html', {
+                'category': category,
+                'page_title': f'Edit Category: {category.name}',
+            })
+
+        # Check if slug already exists (excluding current category)
+        if Category.objects.filter(slug=slug).exclude(id=category_id).exists():
+            messages.error(request, 'A category with this slug already exists.')
+            return render(request, 'admin_panel/categories/edit.html', {
+                'category': category,
+                'page_title': f'Edit Category: {category.name}',
+            })
+
+        # Update category
+        category.name = name
+        category.slug = slug
+        category.description = description
+        category.icon = icon
+
+        # Handle image upload
+        if 'image' in request.FILES:
+            # Delete old image if exists
+            if category.image:
+                import os
+                from django.conf import settings
+                old_path = os.path.join(settings.MEDIA_ROOT, str(category.image))
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            category.image = request.FILES['image']
+
+        # Handle image removal
+        if request.POST.get('remove_image') == 'on':
+            if category.image:
+                import os
+                from django.conf import settings
+                old_path = os.path.join(settings.MEDIA_ROOT, str(category.image))
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            category.image = None
+
+        category.save()
+        messages.success(request, f'Category "{name}" has been updated successfully.')
+        return redirect('admin_panel:categories_list')
+
+    context = {
+        'category': category,
+        'page_title': f'Edit Category: {category.name}',
+    }
+
+    return render(request, 'admin_panel/categories/edit.html', context)
+
+
+@admin_required
+def category_delete_view(request, category_id):
+    """Delete a category"""
+    if request.method != 'POST':
+        return HttpResponse('Method not allowed', status=405)
+
+    category = get_object_or_404(Category, id=category_id)
+    category_name = category.name
+
+    # Check if category has vendors
+    from django.db.models import Count
+    vendor_count = category.vendors.count()
+    if vendor_count > 0:
+        messages.error(request, f'Cannot delete category "{category_name}" because it has {vendor_count} vendor(s) associated with it.')
+        return redirect('admin_panel:categories_list')
+
+    # Delete category image if exists
+    if category.image:
+        import os
+        from django.conf import settings
+        old_path = os.path.join(settings.MEDIA_ROOT, str(category.image))
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    # Delete category
+    category.delete()
+
+    messages.success(request, f'Category "{category_name}" has been deleted successfully.')
+    return redirect('admin_panel:categories_list')
 
 
 # ============================================================================

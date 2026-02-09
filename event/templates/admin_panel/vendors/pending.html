@@ -34,8 +34,8 @@
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
-                                {% if vendor.images %}
-                                    <img src="{{ vendor.images.0 }}" class="rounded me-2"
+                                {% if vendor.images_list %}
+                                    <img src="{{ vendor.images_list.0 }}" class="rounded me-2"
                                          style="width: 48px; height: 48px; object-fit: cover;" alt="{{ vendor.name }}">
                                 {% else %}
                                     <div class="bg-gradient-secondary rounded me-2 d-flex align-items-center justify-content-center"

@@ -80,16 +80,16 @@
                 <!-- Image Gallery -->
                 <div class="card-custom mb-4">
                     <div class="card-body p-0">
-                        {% if vendor.images %}
+                        {% if vendor.images_list %}
                             <div id="vendorGallery" class="carousel slide" data-bs-ride="carousel">
                                 <div class="carousel-inner">
-                                    {% for image in vendor.images %}
+                                    {% for image in vendor.images_list %}
                                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
                                             <img src="{{ image }}" class="d-block w-100" alt="{{ vendor.name }}" style="height: 400px; object-fit: cover; border-radius: var(--radius-lg);">
                                         </div>
                                     {% endfor %}
                                 </div>
-                                {% if vendor.images|length > 1 %}
+                                {% if vendor.images_list|length > 1 %}
                                     <button class="carousel-control-prev" type="button" data-bs-target="#vendorGallery" data-bs-slide="prev">
                                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                         <span class="visually-hidden">Previous</span>
@@ -99,7 +99,7 @@
                                         <span class="visually-hidden">Next</span>
                                     </button>
                                     <div class="carousel-indicators">
-                                        {% for image in vendor.images %}
+                                        {% for image in vendor.images_list %}
                                             <button type="button" data-bs-target="#vendorGallery" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></button>
                                         {% endfor %}
                                     </div>

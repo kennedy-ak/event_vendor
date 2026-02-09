@@ -30,7 +30,7 @@ class Vendor(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='vendors')
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='vendors', null=True, blank=True)
     category = models.ForeignKey('categories.Category', on_delete=models.PROTECT, related_name='vendors')
 
     # Basic info
@@ -106,6 +106,19 @@ class Vendor(models.Model):
 
     def save(self, *args, **kwargs):
         """Auto-generate slug from name if not set"""
+        import json
+
+        # Ensure images is stored as a proper JSON list (not a string)
+        if self.images is not None:
+            if isinstance(self.images, str):
+                try:
+                    parsed = json.loads(self.images)
+                    self.images = parsed if isinstance(parsed, list) else []
+                except (json.JSONDecodeError, TypeError, ValueError):
+                    self.images = []
+            elif not isinstance(self.images, list):
+                self.images = []
+
         if not self.slug:
             base_slug = slugify(self.name)
             slug = base_slug
@@ -137,6 +150,31 @@ class Vendor(models.Model):
     def get_all_images(self):
         """Get all vendor images"""
         return self.vendor_images.all().order_by('-is_primary', 'order', '-created_at')
+
+    @property
+    def images_list(self):
+        """
+        Return images as a proper list.
+        Handles cases where images might be stored as a string in the database.
+        """
+        import json
+
+        if not self.images:
+            return []
+
+        # If already a list, return it
+        if isinstance(self.images, list):
+            return self.images
+
+        # If it's a string, try to parse it
+        if isinstance(self.images, str):
+            try:
+                parsed = json.loads(self.images)
+                return parsed if isinstance(parsed, list) else []
+            except (json.JSONDecodeError, TypeError, ValueError):
+                return []
+
+        return []
 
 
 class VendorImage(models.Model):

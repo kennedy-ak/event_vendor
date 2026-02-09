@@ -4,12 +4,17 @@
 {% block title %}Vendors - Admin Panel{% endblock %}
 
 {% block content %}
-<!-- Pending Alert -->
-<div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+<!-- Create Button & Pending Alert -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="alert alert-info alert-dismissible fade show mb-0" role="alert" style="flex: 1;">
     <i class="bi bi-info-circle me-2"></i>
     <strong>Quick actions:</strong>
     <a href="{% url 'admin_panel:vendors_pending' %}" class="alert-link">View pending vendors</a> waiting for approval.
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <a href="{% url 'admin_panel:vendor_create' %}" class="btn btn-primary-custom action-btn ms-3">
+        <i class="bi bi-plus-lg"></i> Create Vendor
+    </a>
 </div>
 
 <!-- Filters -->
@@ -80,9 +85,14 @@
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
-                                {% if vendor.images %}
-                                    <img src="{{ vendor.images.0 }}" class="rounded me-2"
+                                {% if vendor.images_list %}
+                                    <img src="{{ vendor.images_list.0 }}" class="rounded me-2"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                                          style="width: 48px; height: 48px; object-fit: cover;" alt="{{ vendor.name }}">
+                                    <div class="bg-gradient-secondary rounded me-2 d-flex align-items-center justify-content-center d-none"
+                                         style="width: 48px; height: 48px;">
+                                        <i class="bi bi-shop text-white"></i>
+                                    </div>
                                 {% else %}
                                     <div class="bg-gradient-secondary rounded me-2 d-flex align-items-center justify-content-center"
                                          style="width: 48px; height: 48px;">

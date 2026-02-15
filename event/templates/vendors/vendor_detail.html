@@ -247,20 +247,31 @@
                         
                         {% if vendor.social_links %}
                             <hr>
+                            <h6 class="text-muted text-center mb-3">Follow Us</h6>
                             <div class="d-flex gap-3 justify-content-center">
-                                {% if vendor.social_links.instagram %}
-                                    <a href="{{ vendor.social_links.instagram }}" target="_blank" class="text-primary-custom fs-4">
-                                        <i class="bi bi-instagram"></i>
-                                    </a>
-                                {% endif %}
                                 {% if vendor.social_links.facebook %}
-                                    <a href="{{ vendor.social_links.facebook }}" target="_blank" class="text-primary-custom fs-4">
+                                    <a href="{{ vendor.social_links.facebook }}" target="_blank" rel="noopener noreferrer" class="text-primary-custom fs-4" title="Facebook">
                                         <i class="bi bi-facebook"></i>
                                     </a>
                                 {% endif %}
+                                {% if vendor.social_links.instagram %}
+                                    <a href="{{ vendor.social_links.instagram }}" target="_blank" rel="noopener noreferrer" class="text-primary-custom fs-4" title="Instagram">
+                                        <i class="bi bi-instagram"></i>
+                                    </a>
+                                {% endif %}
                                 {% if vendor.social_links.twitter %}
-                                    <a href="{{ vendor.social_links.twitter }}" target="_blank" class="text-primary-custom fs-4">
-                                        <i class="bi bi-twitter"></i>
+                                    <a href="{{ vendor.social_links.twitter }}" target="_blank" rel="noopener noreferrer" class="text-primary-custom fs-4" title="X (Twitter)">
+                                        <i class="bi bi-twitter-x"></i>
+                                    </a>
+                                {% endif %}
+                                {% if vendor.social_links.tiktok %}
+                                    <a href="{{ vendor.social_links.tiktok }}" target="_blank" rel="noopener noreferrer" class="text-primary-custom fs-4" title="TikTok">
+                                        <i class="bi bi-tiktok"></i>
+                                    </a>
+                                {% endif %}
+                                {% if vendor.social_links.youtube %}
+                                    <a href="{{ vendor.social_links.youtube }}" target="_blank" rel="noopener noreferrer" class="text-primary-custom fs-4" title="YouTube">
+                                        <i class="bi bi-youtube"></i>
                                     </a>
                                 {% endif %}
                             </div>

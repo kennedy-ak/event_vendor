@@ -295,6 +295,13 @@ def vendor_create_view(request):
             user.save()
             messages.info(request, f'Created new user account for {user_email}. Temporary password: {temp_password}')
 
+        # Build social media links
+        social_links = {}
+        for platform in ['facebook', 'instagram', 'twitter', 'tiktok', 'youtube']:
+            url = request.POST.get(platform, '').strip()
+            if url:
+                social_links[platform] = url
+
         # Create vendor
         import json
         vendor = Vendor.objects.create(
@@ -308,6 +315,7 @@ def vendor_create_view(request):
             phone_number=phone_number,
             email=email,
             website=website,
+            social_links=social_links,
             price_tier=price_tier,
             estimated_price_range=estimated_price_range,
             status=status,
@@ -534,6 +542,15 @@ def vendor_edit_view(request, vendor_id):
         vendor.phone_number = request.POST.get('phone_number')
         vendor.email = request.POST.get('email')
         vendor.website = request.POST.get('website', '')
+
+        # Handle social media links
+        social_links = {}
+        for platform in ['facebook', 'instagram', 'twitter', 'tiktok', 'youtube']:
+            url = request.POST.get(platform, '').strip()
+            if url:
+                social_links[platform] = url
+        vendor.social_links = social_links
+
         vendor.price_tier = request.POST.get('price_tier', 'medium')
         vendor.estimated_price_range = request.POST.get('estimated_price_range', '')
         vendor.status = request.POST.get('status', 'pending')

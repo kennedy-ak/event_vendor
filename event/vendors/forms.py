@@ -22,22 +22,25 @@ def _apply_bootstrap_styles(fields):
 class VendorCreationForm(forms.ModelForm):
     """Form for creating a new vendor listing"""
 
+    # Individual social media fields (all optional)
+    facebook = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://facebook.com/yourpage'}))
+    instagram = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://instagram.com/yourhandle'}))
+    twitter = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://x.com/yourhandle'}))
+    tiktok = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://tiktok.com/@yourhandle'}))
+    youtube = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://youtube.com/@yourchannel'}))
+
     class Meta:
         model = Vendor
         fields = [
             'name', 'category', 'subcategory', 'description',
             'address', 'city', 'neighborhood',
             'phone_number', 'email', 'website',
-            'social_links', 'price_tier', 'estimated_price_range',
+            'price_tier', 'estimated_price_range',
             'tags', 'images'
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 5}),
             'address': forms.Textarea(attrs={'rows': 2}),
-            'social_links': forms.Textarea(attrs={
-                'rows': 3,
-                'placeholder': '{"instagram": "@yourhandle", "facebook": "yourpage"}'
-            }),
             'tags': forms.Textarea(attrs={
                 'rows': 2,
                 'placeholder': '["wedding", "outdoor", "luxury"]'
@@ -55,6 +58,12 @@ class VendorCreationForm(forms.ModelForm):
         self.fields['neighborhood'].required = False
         self.fields['website'].required = False
         self.fields['estimated_price_range'].required = False
+
+        # Pre-populate social media fields from existing social_links
+        if self.instance and self.instance.pk and self.instance.social_links:
+            for platform in ['facebook', 'instagram', 'twitter', 'tiktok', 'youtube']:
+                if self.instance.social_links.get(platform):
+                    self.fields[platform].initial = self.instance.social_links[platform]
 
         # Apply consistent Bootstrap styles to all widgets so they render full width
         _apply_bootstrap_styles(self.fields)
@@ -76,6 +85,14 @@ class VendorCreationForm(forms.ModelForm):
 
     def save(self, commit=True):
         vendor = super().save(commit=False)
+        # Build social_links dict from individual fields
+        social_links = {}
+        for platform in ['facebook', 'instagram', 'twitter', 'tiktok', 'youtube']:
+            url = self.cleaned_data.get(platform, '').strip()
+            if url:
+                social_links[platform] = url
+        vendor.social_links = social_links
+
         if not vendor.slug:
             base_slug = slugify(vendor.name)
             slug = base_slug
@@ -92,19 +109,25 @@ class VendorCreationForm(forms.ModelForm):
 class VendorUpdateForm(forms.ModelForm):
     """Form for updating vendor listing"""
 
+    # Individual social media fields (all optional)
+    facebook = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://facebook.com/yourpage'}))
+    instagram = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://instagram.com/yourhandle'}))
+    twitter = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://x.com/yourhandle'}))
+    tiktok = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://tiktok.com/@yourhandle'}))
+    youtube = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'https://youtube.com/@yourchannel'}))
+
     class Meta:
         model = Vendor
         fields = [
             'name', 'subcategory', 'description',
             'address', 'city', 'neighborhood',
             'phone_number', 'email', 'website',
-            'social_links', 'price_tier', 'estimated_price_range',
+            'price_tier', 'estimated_price_range',
             'tags', 'images'
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 5}),
             'address': forms.Textarea(attrs={'rows': 2}),
-            'social_links': forms.Textarea(attrs={'rows': 3}),
             'tags': forms.Textarea(attrs={'rows': 2}),
             'images': forms.Textarea(attrs={'rows': 3}),
         }
@@ -116,8 +139,27 @@ class VendorUpdateForm(forms.ModelForm):
         self.fields['website'].required = False
         self.fields['estimated_price_range'].required = False
 
+        # Pre-populate social media fields from existing social_links
+        if self.instance and self.instance.pk and self.instance.social_links:
+            for platform in ['facebook', 'instagram', 'twitter', 'tiktok', 'youtube']:
+                if self.instance.social_links.get(platform):
+                    self.fields[platform].initial = self.instance.social_links[platform]
+
         # Ensure consistent styling on update form too
         _apply_bootstrap_styles(self.fields)
+
+    def save(self, commit=True):
+        vendor = super().save(commit=False)
+        # Build social_links dict from individual fields
+        social_links = {}
+        for platform in ['facebook', 'instagram', 'twitter', 'tiktok', 'youtube']:
+            url = self.cleaned_data.get(platform, '').strip()
+            if url:
+                social_links[platform] = url
+        vendor.social_links = social_links
+        if commit:
+            vendor.save()
+        return vendor
         
         
 class VendorSearchForm(forms.Form):

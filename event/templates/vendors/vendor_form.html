@@ -226,10 +226,56 @@
                                 </div>
                             </div>
 
-                            <!-- Tags & Social Media -->
+                            <!-- Social Media -->
                             <div class="mb-4">
                                 <h5 class="text-deep-navy mb-3 pb-2 border-bottom">
-                                    <i class="bi bi-tags me-2"></i>Tags & Social Media
+                                    <i class="bi bi-share me-2"></i>Social Media
+                                </h5>
+                                <small class="text-muted d-block mb-3">All social media links are optional. Add them so customers can follow you.</small>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="bi bi-facebook me-1"></i>Facebook</label>
+                                        {{ form.facebook }}
+                                        {% if form.facebook.errors %}
+                                            <div class="text-danger small mt-1">{{ form.facebook.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="bi bi-instagram me-1"></i>Instagram</label>
+                                        {{ form.instagram }}
+                                        {% if form.instagram.errors %}
+                                            <div class="text-danger small mt-1">{{ form.instagram.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="bi bi-twitter-x me-1"></i>X (Twitter)</label>
+                                        {{ form.twitter }}
+                                        {% if form.twitter.errors %}
+                                            <div class="text-danger small mt-1">{{ form.twitter.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="bi bi-tiktok me-1"></i>TikTok</label>
+                                        {{ form.tiktok }}
+                                        {% if form.tiktok.errors %}
+                                            <div class="text-danger small mt-1">{{ form.tiktok.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="bi bi-youtube me-1"></i>YouTube</label>
+                                        {{ form.youtube }}
+                                        {% if form.youtube.errors %}
+                                            <div class="text-danger small mt-1">{{ form.youtube.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tags & Subcategory -->
+                            <div class="mb-4">
+                                <h5 class="text-deep-navy mb-3 pb-2 border-bottom">
+                                    <i class="bi bi-tags me-2"></i>Tags & Subcategory
                                 </h5>
 
                                 <div class="row g-3">
@@ -240,14 +286,6 @@
                                             <div class="text-danger small mt-1">{{ form.tags.errors.0 }}</div>
                                         {% endif %}
                                         <small class="text-muted">Format: ["tag1", "tag2", "tag3"] e.g., ["wedding", "outdoor", "luxury"]</small>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Social Links</label>
-                                        {{ form.social_links }}
-                                        {% if form.social_links.errors %}
-                                            <div class="text-danger small mt-1">{{ form.social_links.errors.0 }}</div>
-                                        {% endif %}
-                                        <small class="text-muted">Format: {"instagram": "@handle", "facebook": "pagename"}</small>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Subcategory</label>

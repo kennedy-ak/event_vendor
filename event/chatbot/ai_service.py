@@ -2,310 +2,446 @@
 AI Service for Event Planner Chatbot using Groq
 """
 import json
-from groq import Groq
+import re
 from django.conf import settings
+from django.db.models import Q
 from vendors.models import Vendor
 from categories.models import Category
 from .models import ChatConversation, ChatMessage, ChatRecommendation
+
+
+# ---------------------------------------------------------------------------
+# Category slug mapping — maps any user phrase to a DB category slug
+# ---------------------------------------------------------------------------
+CATEGORY_SLUG_MAP = {
+    'venue': 'venues',
+    'venues': 'venues',
+    'hall': 'venues',
+    'event center': 'venues',
+    'event centre': 'venues',
+    'banquet': 'venues',
+    'catering': 'catering',
+    'caterer': 'catering',
+    'food': 'catering',
+    'cook': 'catering',
+    'chef': 'catering',
+    'photographer': 'photographers',
+    'photography': 'photographers',
+    'photo': 'photographers',
+    'videographer': 'photographers',
+    'video': 'photographers',
+    'filming': 'photographers',
+    'dj': 'djs',
+    'disc jockey': 'djs',
+    'music': 'djs',
+    'entertainment': 'djs',
+    'band': 'djs',
+    'mc': 'djs',
+    'emcee': 'djs',
+    'fashion': 'fashion-designers',
+    'fashion designer': 'fashion-designers',
+    'dress': 'fashion-designers',
+    'gown': 'fashion-designers',
+    'kente': 'fabrics',
+    'fabric': 'fabrics',
+    'fabrics': 'fabrics',
+    'cloth': 'fabrics',
+    'favour': 'favours',
+    'favours': 'favours',
+    'favor': 'favours',
+    'favors': 'favours',
+    'gift': 'favours',
+    'souvenirs': 'favours',
+    'drinks': 'drinks',
+    'drink': 'drinks',
+    'beverage': 'drinks',
+    'bar': 'drinks',
+    'wine': 'drinks',
+    'alcohol': 'drinks',
+    'planner': 'event-planners',
+    'coordinator': 'event-planners',
+    'organiser': 'event-planners',
+    'organizer': 'event-planners',
+    'event planner': 'event-planners',
+    'event planners': 'event-planners',
+    'decoration': 'decorators',
+    'decor': 'decorators',
+    'decorator': 'decorators',
+    'flowers': 'decorators',
+    'floral': 'decorators',
+    'makeup': 'makeup-artists',
+    'hair': 'makeup-artists',
+    'beauty': 'makeup-artists',
+    'cake': 'bakers',
+    'baker': 'bakers',
+    'pastry': 'bakers',
+}
+
+# City name normalisation
+CITY_MAP = {
+    'accra': 'Accra',
+    'kumasi': 'Kumasi',
+    'tema': 'Tema',
+    'takoradi': 'Takoradi',
+    'cape coast': 'Cape Coast',
+    'sekondi': 'Takoradi',
+    'obuasi': 'Kumasi',
+    'sunyani': 'Sunyani',
+}
+
+
+def _safe_lower(value):
+    """Return lowercase string or empty string if value is None."""
+    return (value or '').lower()
+
+
+def _resolve_city(location_text):
+    """
+    Try to find a canonical city name from a free-text location string.
+    Returns canonical city name or None.
+    """
+    if not location_text:
+        return None
+    loc = location_text.lower()
+    for keyword, canonical in CITY_MAP.items():
+        if keyword in loc:
+            return canonical
+    return None
+
+
+def _resolve_category_slugs(vendor_types):
+    """Convert a list of user-supplied vendor type strings to DB category slugs."""
+    slugs = []
+    for vtype in (vendor_types or []):
+        key = vtype.lower().strip()
+        slug = CATEGORY_SLUG_MAP.get(key)
+        if not slug:
+            # Partial match fallback
+            for phrase, mapped_slug in CATEGORY_SLUG_MAP.items():
+                if phrase in key or key in phrase:
+                    slug = mapped_slug
+                    break
+        if slug and slug not in slugs:
+            slugs.append(slug)
+    return slugs
 
 
 class EventPlannerAI:
     """AI-powered event planner chatbot using Groq"""
 
     def __init__(self):
-        self.client = Groq(api_key=settings.GROQ_API_KEY)
-        self.model = "llama-3.3-70b-versatile"  # Groq's fast Llama model
+        api_key = getattr(settings, 'GROQ_API_KEY', None)
+        if not api_key:
+            raise ValueError("GROQ_API_KEY is not configured in settings.")
+        from groq import Groq
+        self.client = Groq(api_key=api_key)
+        self.model = "llama-3.3-70b-versatile"
+        self.fast_model = "llama-3.1-8b-instant"
 
     def get_system_prompt(self):
-        """System prompt to guide the AI's behavior"""
-        return """You are an expert event planner assistant for Ghana Events Marketplace in Accra, Ghana.
-Your goal is to help users plan their events by asking questions and understanding their needs.
+        """System prompt to guide the AI's behaviour"""
+        # Fetch real category names from DB for accuracy
+        try:
+            categories = list(Category.objects.values_list('name', flat=True))
+            categories_text = ', '.join(categories) if categories else 'Venues, Catering, Photographers, DJs, Fashion Designers, Fabrics, Favours, Drinks, Event Planners'
+        except Exception:
+            categories_text = 'Venues, Catering, Photographers, DJs, Fashion Designers, Fabrics, Favours, Drinks, Event Planners'
 
-CONVERSATION FLOW:
-1. Greet warmly and ask what type of event they're planning
-2. Ask about the event date
-3. Ask about their budget range (in Ghanaian Cedis - GHS)
-4. Ask about preferred location/neighborhood in Accra
-5. Ask about number of expected guests
-6. Ask what vendors they need (venue, catering, photography, DJ, etc.)
-7. Ask about any special requirements (theme, dietary restrictions, outdoor/indoor, etc.)
+        return f"""You are an expert event planner assistant for Events Exclusive — Ghana's premier event vendor marketplace.
+You help users find the perfect vendors for events across Ghana including Accra, Kumasi, Tema, Takoradi, and Cape Coast.
+
+CONVERSATION FLOW — ask ONE question at a time in this order:
+1. What type of event are you planning?
+2. When is the event? (date or approximate month)
+3. Where in Ghana? (city and neighbourhood if possible)
+4. How many guests are you expecting?
+5. What is your approximate budget in Ghanaian Cedis (GHS)?
+6. Which vendors do you need? (e.g. venue, catering, photographer, DJ, decorator)
+7. Any special requirements? (theme, dietary needs, indoor/outdoor, etc.)
+
+After collecting all essential info (type, location, vendor types — at minimum), say:
+"Perfect! I have everything I need. Let me find the best vendors for your [event_type]! 🎉"
+
+GHANA CONTEXT:
+- Currency: Ghanaian Cedi (GHS / ₵)
+- Event types common in Ghana: wedding, traditional wedding (engagement), outdooring / naming ceremony, funeral / burial, birthday party, graduation, corporate event, baby shower, sod-cutting ceremony
+- Neighbourhoods in Accra: East Legon, Cantonments, Labone, Airport Residential, Osu, Adabraka, Dansoman, Spintex, Tema, Madina
+- Be culturally aware: funerals in Ghana are major celebrations with large crowds
+- Kente fabric, libation, highlife music are Ghanaian traditions
+
+AVAILABLE VENDOR CATEGORIES: {categories_text}
 
 GUIDELINES:
-- Be friendly, professional, and enthusiastic
-- Ask ONE question at a time
-- Use Ghanaian context (GHS currency, Accra neighborhoods)
-- Keep responses concise (2-3 sentences max)
-- After collecting all information, summarize and say you're preparing recommendations
-- Use emojis sparingly for warmth
-
-AVAILABLE VENDOR CATEGORIES:
-- Venues
-- Catering
-- Photographers (Photography & Videography)
-- DJs (DJ & Entertainment)
-- Fashion Designers
-- Fabrics
-- Favours (Party Favours)
-- Drinks
-- Event Planners
-
-When you have all the information, respond with: "Perfect! I have everything I need. Let me find the best vendors for your [event_type]! 🎉"
+- Be warm, friendly, and concise (2–3 sentences per reply)
+- Ask ONE question at a time — never ask two questions in one message
+- Use ₵ for Ghanaian Cedis
+- Do NOT make up vendor names or prices — just gather info
+- If the user seems unsure, offer examples (e.g. "For a wedding you might need a venue, caterer, photographer…")
+- If user says they don't know something, skip it and move on
 """
 
     def chat(self, conversation, user_message):
         """
-        Process user message and generate AI response
-
-        Args:
-            conversation: ChatConversation instance
-            user_message: User's message text
-
-        Returns:
-            AI response text
+        Process user message and generate AI response.
+        Returns AI response text.
         """
+        # Guard: max message length
+        user_message = user_message[:1000]
+
         # Save user message
         ChatMessage.objects.create(
             conversation=conversation,
             role='user',
-            content=user_message
+            content=user_message,
         )
 
-        # Get conversation history
         messages = self._build_message_history(conversation)
 
         try:
-            # Call Groq API
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=0.7,
-                max_tokens=300,
+                max_tokens=350,
             )
 
-            # Extract response
             ai_message = response.choices[0].message.content
-            tokens_used = response.usage.total_tokens
+            tokens_used = response.usage.total_tokens if response.usage else None
 
-            # Save AI response
             ChatMessage.objects.create(
                 conversation=conversation,
                 role='assistant',
                 content=ai_message,
-                token_count=tokens_used
+                token_count=tokens_used,
             )
 
-            # Extract structured data from conversation
+            # Extract structured data from conversation (lighter call)
             self._extract_event_data(conversation)
 
-            # Check if conversation is complete
+            # Check completion
             if self._is_conversation_complete(conversation):
                 conversation.is_completed = True
-                conversation.save()
+                conversation.save(update_fields=['is_completed'])
 
             return ai_message
 
         except Exception as e:
-            error_message = f"I'm having trouble right now. Please try again. Error: {str(e)}"
+            error_message = "I'm sorry, I'm having a little trouble right now. Please try sending your message again."
             ChatMessage.objects.create(
                 conversation=conversation,
                 role='assistant',
-                content=error_message
+                content=error_message,
             )
+            # Log real error server-side only
+            print(f"[EventPlannerAI] chat error: {e}")
             return error_message
 
     def _build_message_history(self, conversation):
         """Build message history for Groq API"""
-        messages = [
-            {"role": "system", "content": self.get_system_prompt()}
-        ]
-
-        # Add all previous messages
-        for msg in conversation.messages.all():
-            messages.append({
-                "role": msg.role,
-                "content": msg.content
-            })
-
+        messages = [{"role": "system", "content": self.get_system_prompt()}]
+        for msg in conversation.messages.all().order_by('created_at'):
+            messages.append({"role": msg.role, "content": msg.content})
         return messages
 
     def _extract_event_data(self, conversation):
         """
-        Use AI to extract structured data from conversation
-        This runs after each message to keep data updated
+        Use a fast LLM call to extract structured data from the conversation.
+        Runs after each message. Silently fails — it is best-effort.
         """
-        messages = self._build_message_history(conversation)
+        # Only extract every other message to save API calls
+        msg_count = conversation.messages.count()
+        if msg_count < 2 or msg_count % 2 != 0:
+            return
 
-        # Ask AI to extract structured information
-        extraction_prompt = """Based on the conversation so far, extract the following information in JSON format:
+        history = self._build_message_history(conversation)
+
+        extraction_prompt = """Based on the conversation so far, extract the following as valid JSON only (no markdown, no explanation):
 {
-  "event_type": "wedding|birthday|corporate|other",
+  "event_type": "wedding|birthday|corporate|funeral|naming_ceremony|graduation|baby_shower|engagement|other|null",
   "event_date": "YYYY-MM-DD or null",
-  "budget_min": number or null,
-  "budget_max": number or null,
+  "budget_min": number_or_null,
+  "budget_max": number_or_null,
   "location": "string or null",
-  "guest_count": number or null,
-  "vendor_types_needed": ["venues", "catering", etc.],
+  "guest_count": number_or_null,
+  "vendor_types_needed": ["venue", "catering", "photographer", ...] or [],
   "special_requirements": "string or null"
 }
-
-Only include information that was explicitly mentioned. Return ONLY valid JSON, no other text."""
+Return ONLY the JSON object. Include only information the user explicitly stated."""
 
         try:
             response = self.client.chat.completions.create(
-                model="llama-3.1-8b-instant",  # Faster model for extraction
-                messages=messages + [{"role": "system", "content": extraction_prompt}],
+                model=self.fast_model,
+                messages=history + [{"role": "user", "content": extraction_prompt}],
                 temperature=0,
-                max_tokens=200,
+                max_tokens=250,
             )
 
-            # Parse JSON response
-            data_json = response.choices[0].message.content.strip()
-            # Remove markdown code blocks if present
-            if data_json.startswith("```"):
-                data_json = data_json.split("```")[1]
-                if data_json.startswith("json"):
-                    data_json = data_json[4:]
+            raw = response.choices[0].message.content.strip()
 
-            data = json.loads(data_json)
+            # Strip markdown code fences if present
+            raw = re.sub(r'^```(?:json)?\s*', '', raw)
+            raw = re.sub(r'\s*```$', '', raw)
 
-            # Update conversation with extracted data
-            if data.get('event_type'):
+            data = json.loads(raw)
+
+            changed = False
+            if data.get('event_type') and data['event_type'] != 'null':
                 conversation.event_type = data['event_type']
+                changed = True
             if data.get('budget_min'):
                 conversation.budget_min = data['budget_min']
+                changed = True
             if data.get('budget_max'):
                 conversation.budget_max = data['budget_max']
+                changed = True
             if data.get('location'):
                 conversation.location = data['location']
+                changed = True
             if data.get('guest_count'):
                 conversation.guest_count = data['guest_count']
+                changed = True
             if data.get('vendor_types_needed'):
                 conversation.vendor_types_needed = data['vendor_types_needed']
+                changed = True
             if data.get('special_requirements'):
                 conversation.special_requirements = data['special_requirements']
+                changed = True
             if data.get('event_date'):
                 from datetime import datetime
                 try:
                     conversation.event_date = datetime.strptime(data['event_date'], '%Y-%m-%d').date()
-                except:
+                    changed = True
+                except ValueError:
                     pass
 
-            conversation.save()
+            if changed:
+                conversation.save()
 
         except Exception as e:
-            # Silently fail - extraction is nice-to-have
-            print(f"Data extraction error: {e}")
-            pass
+            print(f"[EventPlannerAI] extraction error: {e}")
 
     def _is_conversation_complete(self, conversation):
-        """Check if we have enough information to make recommendations"""
-        return bool(
-            conversation.event_type and
-            conversation.location and
-            conversation.vendor_types_needed
+        """
+        Conversation is complete when we have at minimum:
+        - event_type  AND
+        - at least one of: location, vendor_types_needed
+        We also consider it done if the last AI message contains the trigger phrase.
+        """
+        has_minimum = bool(conversation.event_type) and bool(
+            conversation.location or conversation.vendor_types_needed
         )
+        if has_minimum:
+            return True
+
+        # Also check trigger phrase in last AI message
+        last_ai_msg = conversation.messages.filter(role='assistant').order_by('-created_at').first()
+        if last_ai_msg and "let me find the best vendors" in last_ai_msg.content.lower():
+            return True
+
+        return False
 
     def generate_recommendations(self, conversation):
         """
-        Generate vendor recommendations based on conversation data
-
-        Returns:
-            List of recommended vendors with reasons
+        Generate vendor recommendations based on conversation data.
+        Returns list of ChatRecommendation objects.
         """
         if not conversation.is_completed:
             return []
 
-        # Start with all active vendors
-        vendors = Vendor.objects.filter(status='active', verified=True)
+        # Resolve city from location text
+        city = _resolve_city(conversation.location)
 
-        # Filter by location (city match)
-        if conversation.location:
-            location_lower = conversation.location.lower()
-            if 'accra' in location_lower or 'legon' in location_lower:
-                vendors = vendors.filter(city__icontains='Accra')
+        # Resolve category slugs
+        category_slugs = _resolve_category_slugs(conversation.vendor_types_needed)
 
-        # Filter by vendor types needed
-        if conversation.vendor_types_needed:
-            category_slugs = []
-            for vendor_type in conversation.vendor_types_needed:
-                # Map common names to slugs
-                slug_mapping = {
-                    'venue': 'venues',
-                    'venues': 'venues',
-                    'catering': 'catering',
-                    'caterer': 'catering',
-                    'photographer': 'photographers',
-                    'photography': 'photographers',
-                    'dj': 'djs',
-                    'music': 'djs',
-                    'fashion': 'fashion-designers',
-                    'designer': 'fashion-designers',
-                    'fabric': 'fabrics',
-                    'favors': 'favours',
-                    'favours': 'favours',
-                    'drinks': 'drinks',
-                    'beverage': 'drinks',
-                    'planner': 'event-planners',
-                    'planning': 'event-planners',
-                }
-                slug = slug_mapping.get(vendor_type.lower(), vendor_type.lower())
-                category_slugs.append(slug)
+        # Check which slugs actually exist in DB
+        existing_slugs = set(Category.objects.values_list('slug', flat=True))
+        valid_slugs = [s for s in category_slugs if s in existing_slugs]
 
-            vendors = vendors.filter(category__slug__in=category_slugs)
+        # Base queryset
+        vendors = Vendor.objects.filter(status='active', verified=True).select_related('category')
 
-        # Filter by budget (price tier)
+        # Location filter
+        if city:
+            vendors = vendors.filter(city__iexact=city)
+
+        # Category filter — if no valid slugs, skip category filter (show all)
+        if valid_slugs:
+            vendors = vendors.filter(category__slug__in=valid_slugs)
+
+        # Budget filter
         if conversation.budget_max:
-            if conversation.budget_max < 10000:
+            bmax = float(conversation.budget_max)
+            if bmax < 5000:
                 vendors = vendors.filter(price_tier='low')
-            elif conversation.budget_max < 30000:
+            elif bmax < 20000:
                 vendors = vendors.filter(price_tier__in=['low', 'medium'])
-            # else: all price tiers
+            # else: show all tiers
 
-        # Order by rating
-        vendors = vendors.order_by('-rating', '-reviews_count')[:15]  # Top 15
+        # Order: verified first, then by rating, then recency
+        vendors = vendors.order_by('-rating', '-reviews_count', '-created_at')
 
-        # Create recommendations
-        recommendations = []
-        for idx, vendor in enumerate(vendors):
-            # Calculate match score
-            match_score = 100 - (idx * 5)  # Simple scoring: best match = 100
+        # Take top 12 to avoid overwhelming the user
+        vendors = list(vendors[:12])
 
-            # Generate reason using AI
-            reason = self._generate_recommendation_reason(conversation, vendor)
+        # Fallback: if city filter yields nothing, retry without city
+        if not vendors and city:
+            vendors_qs = Vendor.objects.filter(status='active', verified=True).select_related('category')
+            if valid_slugs:
+                vendors_qs = vendors_qs.filter(category__slug__in=valid_slugs)
+            vendors = list(vendors_qs.order_by('-rating', '-reviews_count')[:12])
 
-            # Create or update recommendation
-            rec, created = ChatRecommendation.objects.get_or_create(
-                conversation=conversation,
-                vendor=vendor,
-                defaults={
-                    'reason': reason,
-                    'match_score': match_score
-                }
+        # Fallback: if still nothing, just return top-rated vendors
+        if not vendors:
+            vendors = list(
+                Vendor.objects.filter(status='active', verified=True)
+                .select_related('category')
+                .order_by('-rating', '-reviews_count')[:12]
             )
 
+        # Create recommendation records
+        recommendations = []
+        for idx, vendor in enumerate(vendors):
+            match_score = max(10, 100 - (idx * 7))
+            reason = self._generate_recommendation_reason(conversation, vendor)
+            rec, _ = ChatRecommendation.objects.get_or_create(
+                conversation=conversation,
+                vendor=vendor,
+                defaults={'reason': reason, 'match_score': match_score},
+            )
             recommendations.append(rec)
 
         conversation.recommendations_sent = True
-        conversation.save()
+        conversation.save(update_fields=['recommendations_sent'])
 
         return recommendations
 
     def _generate_recommendation_reason(self, conversation, vendor):
-        """Generate a brief reason why this vendor is recommended"""
+        """Build a human-readable reason why this vendor is recommended."""
         reasons = []
 
-        if vendor.rating >= 4.0:
+        if vendor.rating >= 4.5:
+            reasons.append(f"Exceptional rating ({vendor.rating}★)")
+        elif vendor.rating >= 4.0:
             reasons.append(f"Highly rated ({vendor.rating}★)")
 
-        if conversation.location and conversation.location.lower() in vendor.neighborhood.lower():
-            reasons.append(f"Located in {vendor.neighborhood}")
+        # Safe neighbourhood comparison
+        vendor_neighbourhood = _safe_lower(vendor.neighborhood)
+        conv_location = _safe_lower(conversation.location)
+        if conv_location and vendor_neighbourhood and conv_location in vendor_neighbourhood:
+            reasons.append(f"In {vendor.neighborhood}")
+        elif vendor.city:
+            reasons.append(f"Based in {vendor.city}")
 
         if vendor.price_tier == 'low':
-            reasons.append("Budget-friendly")
+            reasons.append("Budget-friendly ₵")
         elif vendor.price_tier == 'high':
             reasons.append("Premium service")
 
-        if not reasons:
-            reasons.append(f"Excellent {vendor.category.name.lower()} service")
+        if vendor.reviews_count >= 10:
+            reasons.append(f"{vendor.reviews_count} reviews")
 
-        return " • ".join(reasons)
+        if not reasons:
+            reasons.append(f"Trusted {(vendor.category.name or 'vendor').lower()}")
+
+        return " · ".join(reasons)

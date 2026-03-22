@@ -179,7 +179,7 @@
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <div class="vendor-card h-100">
                         {% if vendor.images_list %}
-                            <img src="{{ vendor.images_list.0 }}" class="card-img-top" alt="{{ vendor.name }}">
+                            <img src="{{ vendor.images_list.0 }}" class="card-img-top" alt="{{ vendor.name }}" loading="lazy">
                         {% else %}
                             <div class="card-img-top bg-gradient-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
                                 <i class="bi bi-shop text-white" style="font-size: 4rem;"></i>
@@ -227,9 +227,11 @@
                                 </span>
                             </div>
                             
+                            {% if vendor.slug %}
                             <a href="{% url 'vendor_detail' vendor.slug %}" class="btn btn-outline-custom w-100">
                                 View Profile
                             </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

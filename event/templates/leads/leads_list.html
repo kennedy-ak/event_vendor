@@ -36,13 +36,24 @@
                     <div class="col-md-3">
                         <label class="form-label">Status</label>
                         <select name="status" class="form-select">
-                            <option value="">All</option>
+                            <option value="">All Statuses</option>
                             <option value="new" {% if status_filter == 'new' %}selected{% endif %}>New</option>
                             <option value="contacted" {% if status_filter == 'contacted' %}selected{% endif %}>Contacted</option>
                             <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
                         </select>
                     </div>
-                    <div class="col-md-9 text-md-end">
+                    {% if vendors|length > 1 %}
+                    <div class="col-md-4">
+                        <label class="form-label">Listing</label>
+                        <select name="vendor" class="form-select">
+                            <option value="">All Listings</option>
+                            {% for v in vendors %}
+                            <option value="{{ v.id }}" {% if vendor_filter == v.id|stringformat:"s" %}selected{% endif %}>{{ v.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="col text-md-end">
                         <a href="{% url 'leads_list' %}" class="btn btn-secondary-custom me-2">
                             <i class="bi bi-x-circle me-1"></i>Clear
                         </a>
@@ -71,10 +82,12 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Contact</th>
-                                    <th>Vendor</th>
-                                    <th>Date</th>
+                                    <th>Event</th>
+                                    {% if vendors|length > 1 %}<th>Listing</th>{% endif %}
+                                    <th>Event Date</th>
+                                    <th>Received</th>
                                     <th>Status</th>
-                                    <th style="width: 160px;">Actions</th>
+                                    <th style="width: 100px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,45 +100,38 @@
                                                 {% if lead.email %}<i class="bi bi-envelope ms-2 me-1"></i>{{ lead.email }}{% endif %}
                                             </small>
                                         </td>
-                                        <td class="text-primary-custom">{{ lead.vendor.name }}</td>
-                                        <td><small class="text-muted">{{ lead.created_at|date:"M d, Y H:i" }}</small></td>
                                         <td>
-                                            <span class="badge {% if lead.status == 'new' %}bg-warning{% elif lead.status == 'contacted' %}bg-info{% else %}bg-success{% endif %}">
+                                            {% if lead.event_type %}
+                                                <span class="badge bg-light text-dark">{{ lead.get_event_type_display }}</span>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                            {% if lead.source == 'phone_reveal' %}
+                                                <br><small class="text-muted"><i class="bi bi-telephone-fill me-1"></i>Phone reveal</small>
+                                            {% endif %}
+                                        </td>
+                                        {% if vendors|length > 1 %}
+                                        <td class="text-primary-custom small">{{ lead.vendor.name }}</td>
+                                        {% endif %}
+                                        <td>
+                                            {% if lead.event_date %}
+                                                <small class="text-dark fw-semibold">{{ lead.event_date|date:"M d, Y" }}</small>
+                                            {% else %}
+                                                <small class="text-muted">—</small>
+                                            {% endif %}
+                                        </td>
+                                        <td><small class="text-muted">{{ lead.created_at|date:"M d, Y" }}</small></td>
+                                        <td>
+                                            <span class="badge {% if lead.status == 'new' %}bg-warning text-dark{% elif lead.status == 'contacted' %}bg-info{% else %}bg-success{% endif %}">
                                                 {{ lead.get_status_display }}
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="d-flex gap-2">
-                                                {% if lead.phone %}
-                                                    <a href="tel:{{ lead.phone }}" class="btn btn-outline-custom btn-sm"><i class="bi bi-telephone"></i></a>
-                                                {% endif %}
-                                                {% if lead.email %}
-                                                    <a href="mailto:{{ lead.email }}" class="btn btn-outline-custom btn-sm"><i class="bi bi-envelope"></i></a>
-                                                {% endif %}
-                                                <form method="POST" action="{% url 'lead_update_status' lead.id %}" class="d-inline">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="status" value="{% if lead.status == 'new' %}contacted{% else %}closed{% endif %}">
-                                                    <button type="submit" class="btn btn-primary-custom btn-sm">
-                                                        {% if lead.status == 'new' %}
-                                                            Mark Contacted
-                                                        {% elif lead.status == 'contacted' %}
-                                                            Close
-                                                        {% else %}
-                                                            Closed
-                                                        {% endif %}
-                                                    </button>
-                                                </form>
-                                            </div>
+                                            <a href="{% url 'lead_detail' lead.id %}" class="btn btn-outline-custom btn-sm">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
                                         </td>
                                     </tr>
-                                    {% if lead.message %}
-                                        <tr class="bg-body-tertiary">
-                                            <td colspan="5">
-                                                <small class="text-muted d-block mb-1">Message</small>
-                                                <div>{{ lead.message }}</div>
-                                            </td>
-                                        </tr>
-                                    {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>

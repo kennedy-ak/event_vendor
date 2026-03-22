@@ -1,285 +1,920 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Events Exclusive - Find the Best Event Vendors{% endblock %}
+{% block title %}Events Exclusive Ghana — Find Verified Event Vendors in Accra & Beyond{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Category image styling */
-.category-icon-img {
-    width: 80px;
+/* ─── Hero ─────────────────────────────────────────── */
+.lp-hero {
+    background: linear-gradient(135deg, #03045E 0%, #0077B6 60%, #00B4D8 100%);
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+.lp-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.lp-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
     height: 80px;
-    object-fit: cover;
-    border-radius: 12px;
-    margin-bottom: 1rem;
+    background: var(--color-background);
+    clip-path: ellipse(55% 100% at 50% 100%);
+}
+.lp-hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.4rem 1.1rem;
+    border-radius: 50px;
+    margin-bottom: 1.5rem;
+}
+.lp-hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.15;
+}
+.lp-hero h1 .highlight {
+    color: #90E0EF;
+}
+.lp-hero p {
+    font-size: 1.15rem;
+    color: rgba(255,255,255,0.82);
+    max-width: 560px;
+}
+.lp-search-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 20px 60px rgba(3, 4, 94, 0.25);
+}
+.lp-search-card .form-control,
+.lp-search-card .form-select {
+    border: 2px solid #CAF0F8;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+.lp-search-card .form-control:focus,
+.lp-search-card .form-select:focus {
+    border-color: #00B4D8;
+    box-shadow: 0 0 0 3px rgba(0,180,216,0.15);
 }
 
-/* Mobile: add visible border around each category card */
+/* ─── Trust bar ─────────────────────────────────────── */
+.trust-bar {
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 0;
+}
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #03045E;
+    font-weight: 600;
+}
+.trust-item i { color: #00B4D8; font-size: 1.1rem; }
+.trust-divider {
+    width: 1px;
+    height: 28px;
+    background: #dee2e6;
+}
+
+/* ─── Section headings ──────────────────────────────── */
+.lp-section-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #00B4D8;
+    margin-bottom: 0.5rem;
+}
+.lp-section-title {
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
+    font-weight: 800;
+    color: #03045E;
+    line-height: 1.2;
+}
+.lp-section-sub {
+    font-size: 1.05rem;
+    color: #5a6c7d;
+    max-width: 540px;
+    margin: 0 auto;
+}
+
+/* ─── Category cards ─────────────────────────────────── */
+.lp-cat-card {
+    border: 2px solid #CAF0F8;
+    border-radius: 16px;
+    padding: 1.6rem 1rem;
+    text-align: center;
+    background: #fff;
+    transition: all 0.22s ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+}
+.lp-cat-card:hover {
+    border-color: #00B4D8;
+    background: linear-gradient(135deg, #f0fbff, #e0f7ff);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,180,216,0.15);
+    color: inherit;
+    text-decoration: none;
+}
+.lp-cat-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #CAF0F8, #90E0EF);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1rem;
+    transition: all 0.22s;
+}
+.lp-cat-card:hover .lp-cat-icon {
+    background: linear-gradient(135deg, #00B4D8, #0077B6);
+}
+.lp-cat-card:hover .lp-cat-icon .cat-emoji { filter: brightness(10); }
+.lp-cat-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+    object-fit: cover;
+    margin: 0 auto 1rem;
+    display: block;
+}
+.lp-cat-card h6 {
+    font-weight: 700;
+    color: #03045E;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+.lp-cat-card small {
+    color: #5a6c7d;
+    font-size: 0.8rem;
+}
+
+/* ─── How it works ───────────────────────────────────── */
+.hiw-step {
+    position: relative;
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+    background: #fff;
+    border: 2px solid #CAF0F8;
+    height: 100%;
+}
+.hiw-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00B4D8, #0077B6);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+}
+.hiw-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.75rem;
+    color: #00B4D8;
+}
+.hiw-connector {
+    display: none;
+}
+@media (min-width: 768px) {
+    .hiw-connector {
+        display: block;
+        position: absolute;
+        top: 2.5rem;
+        right: -1.5rem;
+        font-size: 1.6rem;
+        color: #CAF0F8;
+        z-index: 1;
+    }
+}
+
+/* ─── Value props ─────────────────────────────────────── */
+.vp-card {
+    padding: 2rem;
+    border-radius: 16px;
+    background: #fff;
+    height: 100%;
+    box-shadow: 0 2px 20px rgba(3,4,94,0.06);
+    transition: transform 0.2s;
+}
+.vp-card:hover { transform: translateY(-4px); }
+.vp-icon-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1.2rem;
+}
+
+/* ─── Vendor cards ───────────────────────────────────── */
+.lp-vendor-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    border: 1.5px solid #e9ecef;
+    transition: all 0.22s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.lp-vendor-card:hover {
+    box-shadow: 0 16px 40px rgba(3,4,94,0.12);
+    transform: translateY(-4px);
+    border-color: #90E0EF;
+}
+.lp-vendor-card img, .lp-vendor-placeholder {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+.lp-vendor-placeholder {
+    background: linear-gradient(135deg, #0077B6, #00B4D8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    color: rgba(255,255,255,0.6);
+}
+.lp-vendor-body { padding: 1.2rem; flex: 1; display: flex; flex-direction: column; }
+.lp-vendor-cat {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #00B4D8;
+    margin-bottom: 0.4rem;
+}
+.lp-vendor-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #03045E;
+    margin-bottom: 0.3rem;
+}
+.lp-vendor-loc { font-size: 0.83rem; color: #5a6c7d; }
+.lp-stars { color: #f59e0b; font-size: 0.8rem; }
+.lp-badge-verified {
+    background: #d1fae5;
+    color: #065f46;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 50px;
+}
+
+/* ─── Vendor CTA split section ──────────────────────── */
+.vendor-cta-section {
+    background: linear-gradient(135deg, #03045E 0%, #0077B6 100%);
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+}
+.vendor-cta-section::before {
+    content: '';
+    position: absolute;
+    right: -80px;
+    top: -80px;
+    width: 300px;
+    height: 300px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+}
+.vendor-cta-section::after {
+    content: '';
+    position: absolute;
+    right: 60px;
+    bottom: -100px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+}
+
+/* ─── Testimonials ───────────────────────────────────── */
+.testimonial-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.8rem;
+    border: 2px solid #CAF0F8;
+    height: 100%;
+    position: relative;
+}
+.testimonial-card::before {
+    content: '"';
+    font-size: 5rem;
+    color: #CAF0F8;
+    font-family: Georgia, serif;
+    line-height: 1;
+    position: absolute;
+    top: 0.5rem;
+    left: 1.2rem;
+}
+.testimonial-text {
+    font-size: 0.97rem;
+    color: #374151;
+    line-height: 1.7;
+    margin-top: 1.5rem;
+    padding-top: 0.5rem;
+}
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+}
+.testimonial-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00B4D8, #0077B6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* ─── Stats ──────────────────────────────────────────── */
+.lp-stat {
+    text-align: center;
+    padding: 1.5rem 1rem;
+}
+.lp-stat-value {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #03045E;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+}
+.lp-stat-label {
+    font-size: 0.9rem;
+    color: #5a6c7d;
+    font-weight: 500;
+}
+
+/* ─── Final CTA ───────────────────────────────────────── */
+.final-cta {
+    background: linear-gradient(135deg, #CAF0F8 0%, #90E0EF 100%);
+    border-radius: 24px;
+}
+
+/* ─── Misc ───────────────────────────────────────────── */
+.category-icon-img {
+    width: 80px; height: 80px;
+    object-fit: cover; border-radius: 12px;
+    margin-bottom: 1rem;
+}
 @media (max-width: 768px) {
-  .category-card {
-    border: 2px solid rgba(0, 180, 216, 0.45); /* ocean blue with subtle transparency */
-    background: #ffffff;
-    box-shadow: 0 4px 8px rgba(3, 4, 94, 0.06);
-    border-radius: var(--radius-lg);
-  }
+    .lp-hero { min-height: auto; padding: 5rem 0 6rem; }
+    .lp-hero::after { height: 50px; }
+    .trust-divider { display: none; }
 }
 </style>
 {% endblock %}
-{% block content %}
-<!-- Hero Section -->
-<section class="hero-section">
-    <div class="container">
-        <div class="hero-content text-center">
-            <h1 class="hero-title">Find the Perfect Vendors for Your Event</h1>
-            <p class="hero-subtitle">
-                Discover top-rated venues, caterers, photographers, DJs, and more across Ghana
-            </p>
-            
-            <!-- Search Box -->
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="search-box">
-                        <form action="{% url 'vendor_list' %}" method="GET">
-                            <div class="row g-3">
-                                <div class="col-md-5">
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white border-end-0">
-                                            <i class="bi bi-search text-muted"></i>
-                                        </span>
-                                        <input type="text" name="q" class="form-control border-start-0" 
-                                               placeholder="Search vendors, services...">
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <select name="category" class="form-select">
-                                        <option value="">All Categories</option>
-                                        {% for category in categories %}
-                                            <option value="{{ category.slug }}">{{ category.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <select name="city" class="form-select">
-                                        <option value="">All Cities</option>
-                                        <option value="Accra">Accra</option>
-                                        <option value="Kumasi">Kumasi</option>
-                                        <option value="Tema">Tema</option>
-                                        <option value="Takoradi">Takoradi</option>
-                                        <option value="Cape Coast">Cape Coast</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="submit" class="btn btn-primary-custom w-100">
-                                        <i class="bi bi-search me-1"></i>Search
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
-<!-- Categories Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="section-title">Browse by Category</h2>
-            <p class="section-subtitle">Find vendors for every aspect of your event</p>
-        </div>
-        
-        <div class="row g-4">
-            {% for category in categories %}
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'category_vendors' category.slug %}" class="text-decoration-none">
-                        <div class="category-card">
-                            {% if category.image %}
-                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-icon-img">
-                            {% else %}
-                                <span class="icon">{{ category.icon|default:"🎉" }}</span>
-                            {% endif %}
-                            <h5>{{ category.name }}</h5>
-                            <p>{{ category.description|truncatewords:8 }}</p>
-                        </div>
+{% block content %}
+
+<!-- ══════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════ -->
+<section class="lp-hero">
+    <div class="container position-relative py-5">
+        <div class="row align-items-center g-5">
+
+            <!-- Left copy -->
+            <div class="col-lg-6">
+                <div class="lp-hero-badge">
+                    <i class="bi bi-geo-alt-fill me-1"></i>Accra · Kumasi · Tema · Takoradi
+                </div>
+                <h1>
+                    Find Trusted Event Vendors
+                    <span class="highlight">Across Ghana</span>
+                </h1>
+                <p class="my-4">
+                    From weddings and funerals to corporate events and birthday parties — discover verified venues, caterers, photographers, DJs, and more. Get quotes in minutes.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'vendor_list' %}" class="btn btn-light btn-lg fw-semibold px-4">
+                        <i class="bi bi-grid me-2"></i>Browse Vendors
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-shop me-2"></i>List Your Business
                     </a>
                 </div>
-            {% empty %}
-                <div class="col-12 text-center">
-                    <p class="text-muted">No categories available yet.</p>
+                <!-- Quick trust signals -->
+                <div class="d-flex flex-wrap gap-4 mt-4 pt-2">
+                    <div class="d-flex align-items-center gap-2 text-white-50" style="font-size:0.85rem;">
+                        <i class="bi bi-patch-check-fill" style="color:#90E0EF;"></i> Verified vendors only
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-white-50" style="font-size:0.85rem;">
+                        <i class="bi bi-envelope-check-fill" style="color:#90E0EF;"></i> Free to contact
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-white-50" style="font-size:0.85rem;">
+                        <i class="bi bi-star-fill" style="color:#90E0EF;"></i> Real reviews
+                    </div>
                 </div>
+            </div>
+
+            <!-- Search card -->
+            <div class="col-lg-6">
+                <div class="lp-search-card">
+                    <p class="fw-bold text-deep-navy mb-3" style="font-size:1.05rem;">
+                        <i class="bi bi-search me-2 text-primary-custom"></i>Search for your perfect vendor
+                    </p>
+                    <form action="{% url 'vendor_list' %}" method="GET">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold">What are you looking for?</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0" style="border:2px solid #CAF0F8;border-right:none;border-radius:10px 0 0 10px;">
+                                    <i class="bi bi-search text-muted"></i>
+                                </span>
+                                <input type="text" name="q" class="form-control border-start-0"
+                                       placeholder="e.g. photographer, DJ, venue..."
+                                       style="border-left:none;">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small fw-semibold">Category</label>
+                                <select name="category" class="form-select">
+                                    <option value="">All Categories</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.slug }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small fw-semibold">City</label>
+                                <select name="city" class="form-select">
+                                    <option value="">All Cities</option>
+                                    <option value="Accra">Accra</option>
+                                    <option value="Kumasi">Kumasi</option>
+                                    <option value="Tema">Tema</option>
+                                    <option value="Takoradi">Takoradi</option>
+                                    <option value="Cape Coast">Cape Coast</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom w-100 py-3 fw-semibold" style="font-size:1.05rem;">
+                            <i class="bi bi-search me-2"></i>Find Vendors
+                        </button>
+                    </form>
+                    <p class="text-center text-muted mt-3 mb-0" style="font-size:0.8rem;">
+                        100+ vendors listed &bull; Free to browse &bull; No sign-up needed
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     TRUST BAR
+══════════════════════════════════════════════ -->
+<div class="trust-bar">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 gap-md-4">
+            <div class="trust-item"><i class="bi bi-patch-check-fill"></i> Admin-verified vendors</div>
+            <div class="trust-divider"></div>
+            <div class="trust-item"><i class="bi bi-people-fill"></i> Weddings, corporate, funerals &amp; more</div>
+            <div class="trust-divider"></div>
+            <div class="trust-item"><i class="bi bi-telephone-fill"></i> Direct vendor contact</div>
+            <div class="trust-divider"></div>
+            <div class="trust-item"><i class="bi bi-star-fill"></i> Honest ratings &amp; reviews</div>
+            <div class="trust-divider"></div>
+            <div class="trust-item"><i class="bi bi-lock-fill"></i> Free to browse, always</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CATEGORIES
+══════════════════════════════════════════════ -->
+<section class="py-5 mt-2">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="lp-section-label">All event types covered</div>
+            <h2 class="lp-section-title">Browse by Category</h2>
+            <p class="lp-section-sub mt-2">Every service you need for your event, in one place</p>
+        </div>
+
+        <div class="row g-3">
+            {% for category in categories %}
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{% url 'category_vendors' category.slug %}" class="lp-cat-card">
+                    {% if category.image %}
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="lp-cat-img" loading="lazy">
+                    {% else %}
+                        <div class="lp-cat-icon">
+                            <span class="cat-emoji">{{ category.icon|default:"🎉" }}</span>
+                        </div>
+                    {% endif %}
+                    <h6>{{ category.name }}</h6>
+                    <small>{{ category.description|truncatewords:6 }}</small>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted">No categories yet.</div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'vendor_list' %}" class="btn btn-outline-custom px-4">
+                <i class="bi bi-grid me-2"></i>See All Vendors
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════════════ -->
+<section class="py-5" style="background:#f8fbff;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="lp-section-label">Simple process</div>
+            <h2 class="lp-section-title">How It Works</h2>
+            <p class="lp-section-sub mt-2">From search to celebration in three easy steps</p>
+        </div>
+
+        <div class="row g-4 position-relative">
+            <div class="col-md-4">
+                <div class="hiw-step">
+                    <div class="hiw-number">1</div>
+                    <div class="hiw-icon"><i class="bi bi-search-heart"></i></div>
+                    <h5 class="text-deep-navy fw-bold mb-2">Search & Discover</h5>
+                    <p class="text-muted mb-0">Filter by category, city, price range, and rating. Browse photos, read bios, and compare vendors side by side — no sign-up needed.</p>
+                    <span class="hiw-connector"><i class="bi bi-arrow-right-circle-fill"></i></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hiw-step">
+                    <div class="hiw-number">2</div>
+                    <div class="hiw-icon"><i class="bi bi-chat-quote"></i></div>
+                    <h5 class="text-deep-navy fw-bold mb-2">Request a Quote</h5>
+                    <p class="text-muted mb-0">Click "Request Quote", tell the vendor about your event — type, date, guest count, budget. The vendor is notified instantly by email.</p>
+                    <span class="hiw-connector"><i class="bi bi-arrow-right-circle-fill"></i></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hiw-step">
+                    <div class="hiw-number">3</div>
+                    <div class="hiw-icon"><i class="bi bi-balloon-heart"></i></div>
+                    <h5 class="text-deep-navy fw-bold mb-2">Book &amp; Celebrate</h5>
+                    <p class="text-muted mb-0">Connect directly with the vendor, agree on details, and confirm your booking. Then enjoy a stress-free, beautifully planned event.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     FEATURED VENDORS
+══════════════════════════════════════════════ -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-end justify-content-between mb-5 gap-3">
+            <div>
+                <div class="lp-section-label">Hand-picked</div>
+                <h2 class="lp-section-title mb-0">Featured Vendors</h2>
+            </div>
+            <a href="{% url 'vendor_list' %}" class="btn btn-outline-custom">
+                View all <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for vendor in featured_vendors %}
+            <div class="col-lg-3 col-md-6">
+                <div class="lp-vendor-card">
+                    {% if vendor.images_list %}
+                        <img src="{{ vendor.images_list.0 }}" alt="{{ vendor.name }}" loading="lazy">
+                    {% else %}
+                        <div class="lp-vendor-placeholder">
+                            <i class="bi bi-shop"></i>
+                        </div>
+                    {% endif %}
+                    <div class="lp-vendor-body">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="lp-vendor-cat">{{ vendor.category.name }}</span>
+                            {% if vendor.verified %}
+                            <span class="lp-badge-verified"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>
+                            {% endif %}
+                        </div>
+                        <div class="lp-vendor-name">{{ vendor.name }}</div>
+                        <div class="lp-vendor-loc mb-2">
+                            <i class="bi bi-geo-alt me-1"></i>{{ vendor.city }}{% if vendor.neighborhood %}, {{ vendor.neighborhood }}{% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="lp-stars">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= vendor.rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="text-muted ms-1" style="font-size:0.8rem;">({{ vendor.reviews_count }})</span>
+                            </div>
+                            <span class="fw-bold text-deep-navy" style="font-size:0.9rem;">
+                                {% if vendor.price_tier == 'low' %}₵{% elif vendor.price_tier == 'medium' %}₵₵{% else %}₵₵₵{% endif %}
+                            </span>
+                        </div>
+                        <a href="{% url 'vendor_detail' vendor.slug %}" class="btn btn-outline-custom w-100 mt-auto">
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">Featured vendors coming soon.</p>
+                <a href="{% url 'vendor_list' %}" class="btn btn-primary-custom">Browse All Vendors</a>
+            </div>
             {% endfor %}
         </div>
     </div>
 </section>
 
-<!-- Featured Vendors Section -->
-<section class="py-5 bg-pale">
+<!-- ══════════════════════════════════════════════
+     WHY CHOOSE US
+══════════════════════════════════════════════ -->
+<section class="py-5" style="background:#f8fbff;">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="section-title">Featured Vendors</h2>
-            <p class="section-subtitle">Top-rated event professionals in Ghana</p>
+            <div class="lp-section-label">Why Events Exclusive</div>
+            <h2 class="lp-section-title">The Smart Way to Plan Events in Ghana</h2>
         </div>
-        
+
         <div class="row g-4">
-            {% for vendor in featured_vendors %}
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="vendor-card">
-                        {% if vendor.images_list %}
-                            <img src="{{ vendor.images_list.0 }}" class="card-img-top" alt="{{ vendor.name }}">
-                        {% else %}
-                            <div class="card-img-top bg-gradient-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="bi bi-shop text-white" style="font-size: 4rem;"></i>
-                            </div>
-                        {% endif %}
-                        
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="vendor-category">{{ vendor.category.name }}</span>
-                                {% if vendor.verified %}
-                                    <span class="verified-badge">
-                                        <i class="bi bi-patch-check-fill"></i> Verified
-                                    </span>
-                                {% endif %}
-                            </div>
-                            
-                            <h5 class="vendor-name">{{ vendor.name }}</h5>
-                            
-                            <p class="vendor-location mb-2">
-                                <i class="bi bi-geo-alt me-1"></i>{{ vendor.city }}{% if vendor.neighborhood %}, {{ vendor.neighborhood }}{% endif %}
-                            </p>
-                            
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="rating">
-                                    {% for i in "12345" %}
-                                        {% if forloop.counter <= vendor.rating %}
-                                            <i class="bi bi-star-fill"></i>
-                                        {% else %}
-                                            <i class="bi bi-star"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                    <span class="text-muted ms-1">({{ vendor.reviews_count }})</span>
-                                </div>
-                                <span class="price-tier">
-                                    {% if vendor.price_tier == 'low' %}₵{% elif vendor.price_tier == 'medium' %}₵₵{% else %}₵₵₵{% endif %}
-                                </span>
-                            </div>
-                            
-                            <a href="{% url 'vendor_detail' vendor.slug %}" class="btn btn-outline-custom w-100 mt-3">
-                                View Profile
-                            </a>
+            <div class="col-md-4">
+                <div class="vp-card">
+                    <div class="vp-icon-wrap" style="background:#e0f7ff;">
+                        <i class="bi bi-patch-check-fill" style="color:#00B4D8;"></i>
+                    </div>
+                    <h5 class="text-deep-navy fw-bold mb-2">Admin-Verified Vendors</h5>
+                    <p class="text-muted mb-0">Every vendor is reviewed before going live. No fake profiles, no scammers — just real, professional service providers across Ghana.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="vp-card">
+                    <div class="vp-icon-wrap" style="background:#fff3cd;">
+                        <i class="bi bi-lightning-charge-fill" style="color:#f59e0b;"></i>
+                    </div>
+                    <h5 class="text-deep-navy fw-bold mb-2">Instant Quote Requests</h5>
+                    <p class="text-muted mb-0">Submit an enquiry in under 2 minutes. Vendors are notified immediately by email and typically respond within 24 hours.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="vp-card">
+                    <div class="vp-icon-wrap" style="background:#d1fae5;">
+                        <i class="bi bi-currency-exchange" style="color:#10b981;"></i>
+                    </div>
+                    <h5 class="text-deep-navy fw-bold mb-2">Free to Browse &amp; Contact</h5>
+                    <p class="text-muted mb-0">No subscription, no hidden fees. Browse hundreds of vendors, read reviews, and contact as many as you want — completely free.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="vp-card">
+                    <div class="vp-icon-wrap" style="background:#ede9fe;">
+                        <i class="bi bi-geo-alt-fill" style="color:#7c3aed;"></i>
+                    </div>
+                    <h5 class="text-deep-navy fw-bold mb-2">Location-Aware Search</h5>
+                    <p class="text-muted mb-0">Search by neighbourhood or use your location to find the closest vendors. Perfect for last-minute planning.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="vp-card">
+                    <div class="vp-icon-wrap" style="background:#fce7f3;">
+                        <i class="bi bi-star-fill" style="color:#ec4899;"></i>
+                    </div>
+                    <h5 class="text-deep-navy fw-bold mb-2">Real Reviews</h5>
+                    <p class="text-muted mb-0">Read honest reviews from verified clients. Ratings are based on real bookings so you know exactly what to expect.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="vp-card">
+                    <div class="vp-icon-wrap" style="background:#cffafe;">
+                        <i class="bi bi-robot" style="color:#0891b2;"></i>
+                    </div>
+                    <h5 class="text-deep-navy fw-bold mb-2">AI Event Planner</h5>
+                    <p class="text-muted mb-0">Our AI chatbot helps you plan your event from scratch — tell it your budget, date, and guest count, and get personalised vendor suggestions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════════════════ -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="lp-section-label">What clients say</div>
+            <h2 class="lp-section-title">Real Stories from Ghana</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"I planned my daughter's wedding in Accra from the UK. Within two days I had quotes from three photographers and a venue. Absolutely brilliant service!"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">A</div>
+                        <div>
+                            <div class="fw-semibold text-deep-navy" style="font-size:0.9rem;">Abena K.</div>
+                            <div class="text-muted" style="font-size:0.78rem;">Wedding in East Legon, Accra</div>
+                        </div>
+                        <div class="lp-stars ms-auto">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
                         </div>
                     </div>
                 </div>
-            {% empty %}
-                <div class="col-12 text-center">
-                    <p class="text-muted">No featured vendors available yet.</p>
-                </div>
-            {% endfor %}
-        </div>
-        
-        {% if featured_vendors %}
-            <div class="text-center mt-5">
-                <a href="{% url 'vendor_list' %}" class="btn btn-primary-custom btn-lg">
-                    <i class="bi bi-grid me-2"></i>View All Vendors
-                </a>
             </div>
-        {% endif %}
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"We needed a caterer and DJ for our company's end-of-year party. Found both on here in one afternoon. Both vendors were professional and the event was a hit!"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">K</div>
+                        <div>
+                            <div class="fw-semibold text-deep-navy" style="font-size:0.9rem;">Kofi A.</div>
+                            <div class="text-muted" style="font-size:0.78rem;">Corporate event, Tema</div>
+                        </div>
+                        <div class="lp-stars ms-auto">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"As a vendor myself, listing on Events Exclusive brought me 12 new enquiries in the first month. The dashboard makes it so easy to manage leads."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">E</div>
+                        <div>
+                            <div class="fw-semibold text-deep-navy" style="font-size:0.9rem;">Efua M.</div>
+                            <div class="text-muted" style="font-size:0.78rem;">Photographer, Kumasi</div>
+                        </div>
+                        <div class="lp-stars ms-auto">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
-<!-- How It Works Section -->
+<!-- ══════════════════════════════════════════════
+     STATS
+══════════════════════════════════════════════ -->
+<section class="py-4" style="background:linear-gradient(135deg,#03045E,#0077B6);">
+    <div class="container">
+        <div class="row g-2 text-center">
+            <div class="col-6 col-md-3">
+                <div class="lp-stat">
+                    <div class="lp-stat-value" style="color:#90E0EF;">100+</div>
+                    <div class="lp-stat-label" style="color:rgba(255,255,255,0.7);">Verified Vendors</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="lp-stat">
+                    <div class="lp-stat-value" style="color:#90E0EF;">15+</div>
+                    <div class="lp-stat-label" style="color:rgba(255,255,255,0.7);">Event Categories</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="lp-stat">
+                    <div class="lp-stat-value" style="color:#90E0EF;">5</div>
+                    <div class="lp-stat-label" style="color:rgba(255,255,255,0.7);">Cities Covered</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="lp-stat">
+                    <div class="lp-stat-value" style="color:#90E0EF;">Free</div>
+                    <div class="lp-stat-label" style="color:rgba(255,255,255,0.7);">To Browse &amp; Contact</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     VENDOR CTA
+══════════════════════════════════════════════ -->
 <section class="py-5">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">Planning your event has never been easier</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="text-center">
-                    <div class="bg-gradient-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
-                        <i class="bi bi-search text-white" style="font-size: 2.5rem;"></i>
+        <div class="vendor-cta-section p-4 p-md-5">
+            <div class="row align-items-center g-4 position-relative">
+                <div class="col-lg-7">
+                    <div class="lp-hero-badge mb-3">For vendors</div>
+                    <h2 class="fw-bold text-white mb-3" style="font-size:clamp(1.6rem,3vw,2.4rem);">
+                        Grow Your Event Business in Ghana
+                    </h2>
+                    <p class="text-white-50 mb-4" style="font-size:1.05rem;">
+                        Join hundreds of verified vendors getting real leads every day. Create your profile, upload photos, set your pricing — and start receiving enquiries within 24 hours of approval.
+                    </p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill mt-1" style="color:#90E0EF;flex-shrink:0;"></i>
+                                <span class="text-white-50" style="font-size:0.9rem;">Dashboard with lead tracking &amp; analytics</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill mt-1" style="color:#90E0EF;flex-shrink:0;"></i>
+                                <span class="text-white-50" style="font-size:0.9rem;">Email notifications for every enquiry</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill mt-1" style="color:#90E0EF;flex-shrink:0;"></i>
+                                <span class="text-white-50" style="font-size:0.9rem;">Photo gallery &amp; full profile page</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill mt-1" style="color:#90E0EF;flex-shrink:0;"></i>
+                                <span class="text-white-50" style="font-size:0.9rem;">Featured listing options to boost visibility</span>
+                            </div>
+                        </div>
                     </div>
-                    <h4 class="text-deep-navy">1. Search & Discover</h4>
-                    <p class="text-muted">Browse through our curated list of verified event vendors across Ghana</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'register' %}" class="btn btn-light btn-lg fw-semibold px-4">
+                            <i class="bi bi-shop me-2"></i>List My Business — It's Free
+                        </a>
+                        <a href="{% url 'vendor_list' %}" class="btn btn-outline-light px-4">
+                            See how it looks <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="text-center">
-                    <div class="bg-gradient-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
-                        <i class="bi bi-chat-dots text-white" style="font-size: 2.5rem;"></i>
+                <div class="col-lg-5 d-none d-lg-flex justify-content-end">
+                    <div style="font-size:10rem;opacity:0.12;line-height:1;user-select:none;position:absolute;right:2rem;top:50%;transform:translateY(-50%);">
+                        🎉
                     </div>
-                    <h4 class="text-deep-navy">2. Connect & Compare</h4>
-                    <p class="text-muted">Request quotes, read reviews, and compare vendors to find the perfect match</p>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="text-center">
-                    <div class="bg-gradient-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
-                        <i class="bi bi-calendar-check text-white" style="font-size: 2.5rem;"></i>
-                    </div>
-                    <h4 class="text-deep-navy">3. Book & Celebrate</h4>
-                    <p class="text-muted">Book your chosen vendors and enjoy a stress-free event planning experience</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="py-5 bg-gradient-primary text-white">
+<!-- ══════════════════════════════════════════════
+     FINAL CTA
+══════════════════════════════════════════════ -->
+<section class="pb-5">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h2 class="fw-bold mb-3">Are You an Event Vendor?</h2>
-                <p class="mb-0 opacity-75">
-                    Join Ghana's largest event marketplace and connect with thousands of potential clients. 
-                    Showcase your services, manage leads, and grow your business.
-                </p>
-            </div>
-            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
-                <a href="{% url 'register' %}" class="btn btn-light btn-lg px-4">
-                    <i class="bi bi-shop me-2"></i>List Your Business
+        <div class="final-cta p-5 text-center">
+            <h2 class="lp-section-title mb-3">Ready to Plan Your Next Event?</h2>
+            <p class="lp-section-sub mb-4">
+                Browse verified vendors across Ghana and get quotes today — for free.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="{% url 'vendor_list' %}" class="btn btn-primary-custom btn-lg px-5 fw-semibold">
+                    <i class="bi bi-search me-2"></i>Start Browsing
+                </a>
+                <a href="{% url 'plan_my_event' %}" class="btn btn-outline-custom btn-lg px-4">
+                    <i class="bi bi-robot me-2"></i>Try AI Planner
                 </a>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Stats Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="row g-4 text-center">
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-value text-primary-custom">100+</div>
-                    <div class="stat-label">Verified Vendors</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-value text-primary-custom">100+</div>
-                    <div class="stat-label">Happy Clients</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-value text-primary-custom">15+</div>
-                    <div class="stat-label">Categories</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-value text-primary-custom">5+</div>
-                    <div class="stat-label">Cities Covered</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 {% endblock %}

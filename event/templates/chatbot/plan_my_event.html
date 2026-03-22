@@ -1,611 +1,742 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Plan My Event - AI Event Planner{% endblock %}
+{% block title %}AI Event Planner — Events Exclusive Ghana{% endblock %}
 
 {% block extra_css %}
 <style>
-    .chat-container {
-        max-width: 1200px;
-        margin: 2rem auto;
-        display: grid;
-        grid-template-columns: 1fr 400px;
-        gap: 2rem;
-        padding: 0 1rem;
-    }
+/* ── Layout ──────────────────────────────────────────────── */
+.planner-wrap {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .planner-wrap { grid-template-columns: 1fr; }
+    .recs-panel { order: -1; }
+}
 
-    @media (max-width: 968px) {
-        .chat-container {
-            grid-template-columns: 1fr;
-        }
-        .recommendations-sidebar {
-            order: -1;
-        }
-    }
+/* ── Chat box ─────────────────────────────────────────────── */
+.chat-box {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(3,4,94,0.10);
+    display: flex;
+    flex-direction: column;
+    height: 640px;
+    overflow: hidden;
+}
+.chat-head {
+    background: linear-gradient(135deg, #03045E 0%, #0077B6 100%);
+    color: #fff;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+.chat-head-title { font-weight: 700; font-size: 1.05rem; margin: 0; }
+.chat-head-sub { font-size: 0.78rem; opacity: 0.8; margin: 0; }
+.chat-restart-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+.chat-restart-btn:hover { background: rgba(255,255,255,0.25); }
 
-    .chat-box {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
-        height: 600px;
-    }
+.chat-msgs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.2rem;
+    background: #f5f8ff;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
 
-    .chat-header {
-        background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 12px 12px 0 0;
-    }
+/* ── Messages ─────────────────────────────────────────────── */
+.msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+.msg-row.user { flex-direction: row-reverse; }
 
-    .chat-header h2 {
-        margin: 0;
-        font-size: 1.5rem;
-    }
+.msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #00B4D8, #0077B6);
+    color: #fff;
+}
+.msg-row.user .msg-avatar {
+    background: linear-gradient(135deg, #CAF0F8, #90E0EF);
+    color: #03045E;
+}
 
-    .chat-header p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.9;
-        font-size: 0.9rem;
-    }
+.msg-bubble {
+    max-width: 75%;
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+    font-size: 0.93rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.msg-row.assistant .msg-bubble {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-bottom-left-radius: 4px;
+    color: #1f2937;
+}
+.msg-row.user .msg-bubble {
+    background: linear-gradient(135deg, #0077B6, #00B4D8);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
 
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1.5rem;
-        background: #F8F9FA;
-    }
+/* Typing indicator */
+.typing-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.65rem 0.85rem;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+}
+.typing-bubble span {
+    width: 7px; height: 7px;
+    background: #9ca3af;
+    border-radius: 50%;
+    animation: typingBounce 1.2s infinite;
+}
+.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-8px); }
+}
 
-    .message {
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: flex-start;
-    }
+/* ── Chat input ──────────────────────────────────────────── */
+.chat-input-wrap {
+    padding: 0.9rem 1rem;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+.chat-input-form { display: flex; gap: 0.5rem; align-items: flex-end; }
+.chat-textarea {
+    flex: 1;
+    border: 2px solid #CAF0F8;
+    border-radius: 12px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.93rem;
+    resize: none;
+    outline: none;
+    min-height: 44px;
+    max-height: 120px;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    line-height: 1.4;
+}
+.chat-textarea:focus { border-color: #00B4D8; }
+.chat-textarea:disabled { background: #f9fafb; cursor: not-allowed; }
+.chat-send-btn {
+    background: linear-gradient(135deg, #0077B6, #00B4D8);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0 1.1rem;
+    height: 44px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+.chat-send-btn:hover:not(:disabled) { opacity: 0.88; }
+.chat-send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.char-count {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    text-align: right;
+    margin-top: 0.3rem;
+}
+.char-count.warning { color: #f59e0b; }
+.char-count.danger { color: #ef4444; }
 
-    .message.user {
-        justify-content: flex-end;
-    }
+/* ── Recommendations panel ───────────────────────────────── */
+.recs-panel {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(3,4,94,0.10);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 640px;
+}
+.recs-head {
+    padding: 1.2rem 1.5rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    flex-shrink: 0;
+}
+.recs-head h3 { font-size: 1rem; font-weight: 700; color: #03045E; margin: 0 0 0.2rem; }
+.recs-head p { font-size: 0.8rem; color: #6b7280; margin: 0; }
+.recs-body { flex: 1; overflow-y: auto; padding: 1rem; }
+.recs-actions {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #f0f0f0;
+    display: none;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
 
-    .message-content {
-        max-width: 70%;
-        padding: 0.75rem 1rem;
-        border-radius: 12px;
-        line-height: 1.5;
-    }
+/* ── Vendor recommendation cards ─────────────────────────── */
+.rec-card {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 0.9rem;
+    transition: all 0.2s;
+}
+.rec-card:hover {
+    border-color: #90E0EF;
+    box-shadow: 0 4px 16px rgba(0,180,216,0.12);
+}
+.rec-card-img {
+    width: 100%;
+    height: 130px;
+    background: linear-gradient(135deg, #0077B6, #00B4D8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 3rem;
+    overflow: hidden;
+}
+.rec-card-img img { width: 100%; height: 130px; object-fit: cover; display: block; }
+.rec-card-body { padding: 0.9rem; }
+.rec-cat {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #00B4D8;
+    margin-bottom: 0.25rem;
+}
+.rec-name { font-weight: 700; color: #03045E; font-size: 0.97rem; margin-bottom: 0.2rem; }
+.rec-loc { font-size: 0.8rem; color: #6b7280; margin-bottom: 0.4rem; }
+.rec-stars { color: #f59e0b; font-size: 0.78rem; }
+.rec-reason {
+    font-size: 0.78rem;
+    color: #374151;
+    background: #f0f8ff;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    margin: 0.5rem 0;
+}
+.rec-btns { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+.rec-btn {
+    flex: 1;
+    padding: 0.45rem 0;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+    display: inline-block;
+}
+.rec-btn-primary { background: #0077B6; color: #fff; }
+.rec-btn-primary:hover { background: #005a8c; color: #fff; }
+.rec-btn-secondary { background: #e5e7eb; color: #374151; }
+.rec-btn-secondary:hover { background: #d1d5db; color: #374151; }
 
-    .message.assistant .message-content {
-        background: white;
-        border: 1px solid #E5E7EB;
-    }
+/* ── Empty / loading states ──────────────────────────────── */
+.recs-empty {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: #9ca3af;
+}
+.recs-empty i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+.loading-dots {
+    display: inline-flex; gap: 5px; align-items: center; justify-content: center;
+    padding: 1.5rem;
+}
+.loading-dots span {
+    width: 8px; height: 8px; background: #00B4D8; border-radius: 50%;
+    animation: typingBounce 1.2s infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 
-    .message.user .message-content {
-        background: #0077B6;
-        color: white;
-    }
-
-    .message-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        margin: 0 0.5rem;
-    }
-
-    .chat-input-container {
-        padding: 1rem;
-        background: white;
-        border-top: 1px solid #E5E7EB;
-        border-radius: 0 0 12px 12px;
-    }
-
-    .chat-input-form {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .chat-input {
-        flex: 1;
-        padding: 0.75rem 1rem;
-        border: 1px solid #E5E7EB;
-        border-radius: 8px;
-        font-size: 1rem;
-    }
-
-    .chat-input:focus {
-        outline: none;
-        border-color: #0077B6;
-    }
-
-    .chat-send-btn {
-        padding: 0.75rem 1.5rem;
-        background: #0077B6;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-
-    .chat-send-btn:hover {
-        background: #005A8C;
-    }
-
-    .chat-send-btn:disabled {
-        background: #CCC;
-        cursor: not-allowed;
-    }
-
-    .recommendations-sidebar {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        padding: 1.5rem;
-        max-height: 600px;
-        overflow-y: auto;
-    }
-
-    .recommendations-header {
-        margin-bottom: 1.5rem;
-    }
-
-    .recommendations-header h3 {
-        margin: 0 0 0.5rem 0;
-        color: #03045E;
-    }
-
-    .recommendations-actions {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-top: 1rem;
-    }
-
-    .action-btn {
-        padding: 0.5rem 1rem;
-        border: 1px solid #0077B6;
-        background: white;
-        color: #0077B6;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .action-btn:hover {
-        background: #0077B6;
-        color: white;
-    }
-
-    .vendor-card {
-        border: 1px solid #E5E7EB;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .vendor-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .vendor-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        margin-bottom: 0.5rem;
-    }
-
-    .vendor-name {
-        font-weight: 600;
-        color: #03045E;
-        margin: 0;
-    }
-
-    .vendor-category {
-        font-size: 0.85rem;
-        color: #6B7280;
-    }
-
-    .vendor-rating {
-        color: #F59E0B;
-        font-size: 0.9rem;
-    }
-
-    .vendor-reason {
-        font-size: 0.85rem;
-        color: #6B7280;
-        margin: 0.5rem 0;
-        padding: 0.5rem;
-        background: #F3F4F6;
-        border-radius: 4px;
-    }
-
-    .vendor-actions {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-    }
-
-    .vendor-btn {
-        flex: 1;
-        padding: 0.5rem;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .vendor-btn-primary {
-        background: #0077B6;
-        color: white;
-    }
-
-    .vendor-btn-primary:hover {
-        background: #005A8C;
-    }
-
-    .vendor-btn-secondary {
-        background: #E5E7EB;
-        color: #374151;
-    }
-
-    .vendor-btn-secondary:hover {
-        background: #D1D5DB;
-    }
-
-    .loading-spinner {
-        text-align: center;
-        padding: 2rem;
-        color: #6B7280;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 2rem;
-        color: #9CA3AF;
-    }
-
-    .typing-indicator {
-        display: none;
-        padding: 0.75rem 1rem;
-        background: white;
-        border: 1px solid #E5E7EB;
-        border-radius: 12px;
-        max-width: 70px;
-    }
-
-    .typing-indicator.active {
-        display: inline-block;
-    }
-
-    .typing-indicator span {
-        height: 8px;
-        width: 8px;
-        background: #9CA3AF;
-        border-radius: 50%;
-        display: inline-block;
-        margin: 0 2px;
-        animation: typing 1.4s infinite;
-    }
-
-    .typing-indicator span:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-
-    .typing-indicator span:nth-child(3) {
-        animation-delay: 0.4s;
-    }
-
-    @keyframes typing {
-        0%, 60%, 100% {
-            transform: translateY(0);
-        }
-        30% {
-            transform: translateY(-10px);
-        }
-    }
+/* ── Email modal ─────────────────────────────────────────── */
+.modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+    margin: 1rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal-box h4 { color: #03045E; font-weight: 700; margin-bottom: 0.5rem; }
+.modal-box p { color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem; }
+.modal-input {
+    width: 100%;
+    border: 2px solid #CAF0F8;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+.modal-input:focus { border-color: #00B4D8; }
+.modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="chat-container">
-    <!-- Main Chat Box -->
+
+<!-- Page header -->
+<div style="background:linear-gradient(135deg,#03045E,#0077B6);color:#fff;padding:2rem 0 1.5rem;">
+    <div class="container">
+        <h1 style="font-size:1.6rem;font-weight:800;margin:0 0 0.3rem;">
+            <i class="bi bi-robot me-2"></i>AI Event Planner
+        </h1>
+        <p style="margin:0;opacity:0.8;font-size:0.9rem;">
+            Answer a few questions and get personalised vendor recommendations for your event in Ghana
+        </p>
+    </div>
+</div>
+
+<div class="planner-wrap">
+
+    <!-- ── Chat box ────────────────────────────────── -->
     <div class="chat-box">
-        <div class="chat-header">
-            <h2>🎉 AI Event Planner</h2>
-            <p>Let's plan your perfect event together!</p>
+        <div class="chat-head">
+            <div>
+                <p class="chat-head-title"><i class="bi bi-stars me-1"></i> Events Exclusive AI</p>
+                <p class="chat-head-sub">Your personal event planning assistant</p>
+            </div>
+            <button class="chat-restart-btn" onclick="restartConversation()">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Restart
+            </button>
         </div>
 
-        <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be inserted here -->
-        </div>
+        <div class="chat-msgs" id="chatMsgs"></div>
 
-        <div class="chat-input-container">
-            <form class="chat-input-form" id="chatForm">
-                <input
-                    type="text"
-                    class="chat-input"
-                    id="messageInput"
-                    placeholder="Type your message..."
-                    autocomplete="off"
+        <div class="chat-input-wrap">
+            <form class="chat-input-form" id="chatForm" onsubmit="return false;">
+                <textarea
+                    id="msgInput"
+                    class="chat-textarea"
+                    placeholder="Type your message…"
+                    rows="1"
+                    maxlength="1000"
                     disabled
-                >
+                ></textarea>
                 <button type="submit" class="chat-send-btn" id="sendBtn" disabled>
-                    Send
+                    <i class="bi bi-send-fill"></i>
                 </button>
             </form>
+            <div class="char-count" id="charCount">0 / 1000</div>
         </div>
     </div>
 
-    <!-- Recommendations Sidebar -->
-    <div class="recommendations-sidebar">
-        <div class="recommendations-header">
-            <h3>📋 Your Recommendations</h3>
-            <p style="color: #6B7280; font-size: 0.9rem; margin: 0;">Complete the conversation to see personalized vendor suggestions</p>
+    <!-- ── Recommendations panel ─────────────────── -->
+    <div class="recs-panel">
+        <div class="recs-head">
+            <h3><i class="bi bi-stars me-1 text-primary-custom"></i>Your Vendor Matches</h3>
+            <p id="recsSubtitle">Chat with the AI to get personalised vendor recommendations</p>
         </div>
 
-        <div id="recommendationsContainer">
-            <div class="empty-state">
-                <p>Answer a few questions and I'll recommend the perfect vendors for your event!</p>
+        <div class="recs-body" id="recsBody">
+            <div class="recs-empty">
+                <i class="bi bi-chat-heart"></i>
+                <p style="margin:0;font-size:0.9rem;">Answer a few questions and I'll recommend the best vendors for your event!</p>
             </div>
         </div>
 
-        <div id="recommendationsActions" style="display: none;" class="recommendations-actions">
-            <button class="action-btn" onclick="emailRecommendations()">📧 Email List</button>
-            <button class="action-btn" onclick="shareRecommendations()">🔗 Share</button>
-            <button class="action-btn" onclick="exportPDF()">📄 Export PDF</button>
+        <div class="recs-actions" id="recsActions">
+            <button class="btn btn-outline-custom btn-sm" onclick="openEmailModal()">
+                <i class="bi bi-envelope me-1"></i>Email Me This List
+            </button>
+            <button class="btn btn-secondary-custom btn-sm" onclick="copyShareLink()">
+                <i class="bi bi-link-45deg me-1"></i>Copy Link
+            </button>
         </div>
     </div>
 </div>
 
-<script>
-let conversationCode = null;
-let isWaitingForResponse = false;
+<!-- ── Email modal ──────────────────────────────────────── -->
+<div class="modal-overlay" id="emailModal">
+    <div class="modal-box">
+        <h4><i class="bi bi-envelope me-2"></i>Email Your Recommendations</h4>
+        <p>We'll send your personalised vendor list straight to your inbox.</p>
+        <input type="email" class="modal-input" id="emailInput" placeholder="your@email.com">
+        <div id="emailStatus" style="font-size:0.85rem;min-height:1.2rem;margin-bottom:0.5rem;"></div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary-custom" onclick="closeEmailModal()">Cancel</button>
+            <button class="btn btn-primary-custom" onclick="submitEmail()">
+                <i class="bi bi-send me-1"></i>Send
+            </button>
+        </div>
+    </div>
+</div>
 
-// Start conversation on page load
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let convCode = null;
+let waiting  = false;
+
+// ── Init ───────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-    startConversation();
+    const urlParams = new URLSearchParams(window.location.search);
+    const existingCode = urlParams.get('code');
+    if (existingCode) {
+        convCode = existingCode;
+        appendMsg('assistant', "Welcome back! Here are your previous recommendations.");
+        showRecsLoading();
+        loadRecommendations();
+        enableInput();
+    } else {
+        startConversation();
+    }
 });
 
+// ── Conversation start / restart ──────────────────────────────────────────
 async function startConversation() {
+    setInputEnabled(false);
     try {
-        const response = await fetch('/chatbot/api/chat/start/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-
-        const data = await response.json();
-
+        const res  = await fetch('/chatbot/api/chat/start/', { method: 'POST', headers: csrfHeaders() });
+        const data = await res.json();
         if (data.success) {
-            conversationCode = data.conversation_code;
-            addMessage('assistant', data.message);
+            convCode = data.conversation_code;
+            appendMsg('assistant', data.message);
+            history.replaceState(null, '', `?code=${convCode}`);
             enableInput();
+        } else {
+            appendMsg('assistant', '⚠️ ' + (data.error || 'Could not start. Please refresh.'));
         }
-    } catch (error) {
-        console.error('Error starting conversation:', error);
-        addMessage('assistant', 'Sorry, I\'m having trouble starting. Please refresh the page.');
+    } catch {
+        appendMsg('assistant', '⚠️ Connection error. Please check your internet and refresh.');
     }
 }
 
-document.getElementById('chatForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+function restartConversation() {
+    if (!confirm('Start a new conversation? Your current chat will not be saved.')) return;
+    document.getElementById('chatMsgs').innerHTML = '';
+    resetRecsPanel();
+    convCode = null;
+    history.replaceState(null, '', window.location.pathname);
+    startConversation();
+}
 
-    const input = document.getElementById('messageInput');
-    const message = input.value.trim();
+// ── Send message ───────────────────────────────────────────────────────────
+document.getElementById('chatForm').addEventListener('submit', sendMessage);
+document.getElementById('msgInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+document.getElementById('msgInput').addEventListener('input', function() {
+    const len = this.value.length;
+    const counter = document.getElementById('charCount');
+    counter.textContent = `${len} / 1000`;
+    counter.className = 'char-count' + (len > 900 ? ' danger' : len > 700 ? ' warning' : '');
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
 
-    if (!message || isWaitingForResponse) return;
+async function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const msg   = input.value.trim();
+    if (!msg || waiting || !convCode) return;
 
-    // Add user message
-    addMessage('user', message);
+    appendMsg('user', msg);
     input.value = '';
-
-    // Show typing indicator
-    showTypingIndicator();
-    isWaitingForResponse = true;
+    input.style.height = 'auto';
+    document.getElementById('charCount').textContent = '0 / 1000';
+    showTyping();
+    setInputEnabled(false);
+    waiting = true;
 
     try {
-        const response = await fetch('/chatbot/api/chat/message/', {
+        const res  = await fetch('/chatbot/api/chat/message/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                conversation_code: conversationCode,
-                message: message
-            })
+            headers: csrfHeaders(),
+            body: JSON.stringify({ conversation_code: convCode, message: msg }),
         });
-
-        const data = await response.json();
-
-        hideTypingIndicator();
-        isWaitingForResponse = false;
+        const data = await res.json();
+        hideTyping();
+        waiting = false;
+        setInputEnabled(true);
 
         if (data.success) {
-            addMessage('assistant', data.message);
-
-            // Load recommendations if conversation complete
+            appendMsg('assistant', data.message);
             if (data.should_show_recommendations) {
+                showRecsLoading();
                 loadRecommendations();
             }
+        } else {
+            appendMsg('assistant', '⚠️ ' + (data.error || 'Something went wrong. Try again.'));
         }
-    } catch (error) {
-        console.error('Error sending message:', error);
-        hideTypingIndicator();
-        isWaitingForResponse = false;
-        addMessage('assistant', 'Sorry, I had trouble processing that. Please try again.');
-    }
-});
-
-function addMessage(role, content) {
-    const messagesContainer = document.getElementById('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${role}`;
-
-    const avatar = role === 'assistant' ? '🤖' : '👤';
-
-    messageDiv.innerHTML = `
-        ${role === 'assistant' ? `<div class="message-avatar">${avatar}</div>` : ''}
-        <div class="message-content">${escapeHtml(content)}</div>
-        ${role === 'user' ? `<div class="message-avatar">${avatar}</div>` : ''}
-    `;
-
-    messagesContainer.appendChild(messageDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function showTypingIndicator() {
-    const messagesContainer = document.getElementById('chatMessages');
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message assistant';
-    typingDiv.id = 'typingIndicator';
-    typingDiv.innerHTML = `
-        <div class="message-avatar">🤖</div>
-        <div class="typing-indicator active">
-            <span></span><span></span><span></span>
-        </div>
-    `;
-    messagesContainer.appendChild(typingDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function hideTypingIndicator() {
-    const typingIndicator = document.getElementById('typingIndicator');
-    if (typingIndicator) {
-        typingIndicator.remove();
+    } catch {
+        hideTyping();
+        waiting = false;
+        setInputEnabled(true);
+        appendMsg('assistant', '⚠️ Connection lost. Please check your internet and try again.');
     }
 }
 
-function enableInput() {
-    document.getElementById('messageInput').disabled = false;
-    document.getElementById('sendBtn').disabled = false;
+// ── Recommendations ────────────────────────────────────────────────────────
+function showRecsLoading() {
+    document.getElementById('recsBody').innerHTML = `
+        <div style="text-align:center;padding:2rem;">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            <p style="color:#6b7280;font-size:0.85rem;margin:0.5rem 0 0;">Finding the best vendors for you…</p>
+        </div>`;
+}
+
+function resetRecsPanel() {
+    document.getElementById('recsBody').innerHTML = `
+        <div class="recs-empty">
+            <i class="bi bi-chat-heart"></i>
+            <p style="margin:0;font-size:0.9rem;">Answer a few questions and I'll recommend the best vendors for your event!</p>
+        </div>`;
+    document.getElementById('recsActions').style.display = 'none';
+    document.getElementById('recsSubtitle').textContent = 'Chat with the AI to get personalised vendor recommendations';
 }
 
 async function loadRecommendations() {
-    const container = document.getElementById('recommendationsContainer');
-    container.innerHTML = '<div class="loading-spinner">Loading recommendations...</div>';
-
+    if (!convCode) return;
     try {
-        const response = await fetch(`/chatbot/api/chat/recommendations/${conversationCode}/`);
-        const data = await response.json();
+        const res  = await fetch(`/chatbot/api/chat/recommendations/${convCode}/`);
+        const data = await res.json();
 
-        if (data.success && data.recommendations.length > 0) {
-            displayRecommendations(data.recommendations);
-            document.getElementById('recommendationsActions').style.display = 'flex';
+        if (data.success && data.recommendations && data.recommendations.length > 0) {
+            renderRecommendations(data.recommendations, data.event_type, data.location);
         } else {
-            container.innerHTML = '<div class="empty-state">No recommendations found.</div>';
+            document.getElementById('recsBody').innerHTML = `
+                <div class="recs-empty">
+                    <i class="bi bi-search"></i>
+                    <p style="margin:0;font-size:0.9rem;">No vendors matched yet. Keep chatting to refine your requirements.</p>
+                </div>`;
         }
-    } catch (error) {
-        console.error('Error loading recommendations:', error);
-        container.innerHTML = '<div class="empty-state">Error loading recommendations.</div>';
+    } catch {
+        document.getElementById('recsBody').innerHTML = `
+            <div class="recs-empty">
+                <i class="bi bi-exclamation-circle"></i>
+                <p style="margin:0;font-size:0.9rem;">Could not load recommendations. Please try again.</p>
+            </div>`;
     }
 }
 
-function displayRecommendations(recommendations) {
-    const container = document.getElementById('recommendationsContainer');
-    container.innerHTML = '';
+function renderRecommendations(recs, eventType, location) {
+    const subtitle = eventType
+        ? `${recs.length} vendor${recs.length !== 1 ? 's' : ''} for your ${eventType}${location ? ' in ' + location : ''}`
+        : `${recs.length} vendor match${recs.length !== 1 ? 'es' : ''}`;
+    document.getElementById('recsSubtitle').textContent = subtitle;
 
-    recommendations.forEach(rec => {
+    const body = document.getElementById('recsBody');
+    body.innerHTML = '';
+
+    recs.forEach(rec => {
+        const loc      = [rec.neighborhood, rec.city].filter(Boolean).join(', ');
+        const starFull = Math.round(rec.rating);
+        const stars    = '★'.repeat(starFull) + '☆'.repeat(Math.max(0, 5 - starFull));
+        const imgHtml  = rec.primary_image
+            ? `<img src="${escHtml(rec.primary_image)}" alt="${escHtml(rec.vendor_name)}" loading="lazy">`
+            : `<i class="bi bi-shop"></i>`;
+        const priceLabel = { low: '₵ Budget', medium: '₵₵ Mid-range', high: '₵₵₵ Premium' }[rec.price_tier] || '';
+
         const card = document.createElement('div');
-        card.className = 'vendor-card';
+        card.className = 'rec-card';
         card.innerHTML = `
-            <div class="vendor-header">
-                <div>
-                    <h4 class="vendor-name">${escapeHtml(rec.vendor_name)}</h4>
-                    <p class="vendor-category">${escapeHtml(rec.category)}</p>
+            <div class="rec-card-img">${imgHtml}</div>
+            <div class="rec-card-body">
+                <div class="rec-cat">${escHtml(rec.category)}</div>
+                <div class="rec-name">${escHtml(rec.vendor_name)}</div>
+                <div class="rec-loc"><i class="bi bi-geo-alt me-1"></i>${escHtml(loc || 'Ghana')}</div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="rec-stars">${stars}</span>
+                    <span style="font-size:0.78rem;color:#6b7280;">${rec.rating.toFixed(1)} (${rec.reviews_count})</span>
+                    ${priceLabel ? `<span style="font-size:0.75rem;color:#6b7280;margin-left:auto;">${priceLabel}</span>` : ''}
                 </div>
-                <div class="vendor-rating">⭐ ${rec.rating.toFixed(1)}</div>
-            </div>
-            <p class="vendor-reason">💡 ${escapeHtml(rec.reason)}</p>
-            <div class="vendor-actions">
-                <button class="vendor-btn vendor-btn-primary" onclick="viewVendor('${rec.vendor_slug}', '${rec.vendor_id}')">
-                    View Profile
-                </button>
-                <button class="vendor-btn vendor-btn-secondary" onclick="contactVendor('${rec.vendor_id}')">
-                    Contact
-                </button>
-            </div>
-        `;
-        container.appendChild(card);
+                ${rec.reason ? `<div class="rec-reason"><i class="bi bi-lightbulb me-1"></i>${escHtml(rec.reason)}</div>` : ''}
+                <div class="rec-btns">
+                    <a href="/vendors/${escHtml(rec.vendor_slug)}/"
+                       class="rec-btn rec-btn-primary"
+                       target="_blank" rel="noopener noreferrer"
+                       onclick="trackAction('${escHtml(rec.vendor_id)}','viewed')">
+                        View Profile
+                    </a>
+                    <a href="/leads/contact/${escHtml(rec.vendor_slug)}/?source=chatbot"
+                       class="rec-btn rec-btn-secondary"
+                       onclick="trackAction('${escHtml(rec.vendor_id)}','contacted')">
+                        Request Quote
+                    </a>
+                </div>
+            </div>`;
+        body.appendChild(card);
     });
+
+    document.getElementById('recsActions').style.display = 'flex';
 }
 
-function viewVendor(slug, vendorId) {
-    trackAction(vendorId, 'viewed');
-    window.open(`/vendors/${slug}/`, '_blank');
-}
-
-function contactVendor(vendorId) {
-    trackAction(vendorId, 'contacted');
-    // Implement contact modal or redirect
-    alert('Contact feature coming soon!');
-}
-
+// ── Tracking ───────────────────────────────────────────────────────────────
 async function trackAction(vendorId, action) {
+    if (!convCode) return;
     try {
         await fetch('/chatbot/api/chat/track/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                conversation_code: conversationCode,
-                vendor_id: vendorId,
-                action: action
-            })
+            headers: csrfHeaders(),
+            body: JSON.stringify({ conversation_code: convCode, vendor_id: vendorId, action }),
         });
-    } catch (error) {
-        console.error('Error tracking action:', error);
-    }
+    } catch { /* non-critical */ }
 }
 
-async function emailRecommendations() {
-    const email = prompt('Enter your email address:');
-    if (!email) return;
+// ── Email modal ────────────────────────────────────────────────────────────
+function openEmailModal() {
+    document.getElementById('emailInput').value = '';
+    document.getElementById('emailStatus').textContent = '';
+    document.getElementById('emailModal').classList.add('open');
+    setTimeout(() => document.getElementById('emailInput').focus(), 100);
+}
+function closeEmailModal() {
+    document.getElementById('emailModal').classList.remove('open');
+}
+document.getElementById('emailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEmailModal();
+});
+document.getElementById('emailInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitEmail();
+});
 
+async function submitEmail() {
+    const email  = document.getElementById('emailInput').value.trim();
+    const status = document.getElementById('emailStatus');
+    if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+        status.style.color = '#ef4444';
+        status.textContent = 'Please enter a valid email address.';
+        return;
+    }
+    status.style.color = '#6b7280';
+    status.textContent = 'Sending…';
     try {
-        const response = await fetch('/chatbot/api/chat/email/', {
+        const res  = await fetch('/chatbot/api/chat/email/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                conversation_code: conversationCode,
-                email: email
-            })
+            headers: csrfHeaders(),
+            body: JSON.stringify({ conversation_code: convCode, email }),
         });
-
-        const data = await response.json();
-        alert(data.message || 'Email sent!');
-    } catch (error) {
-        console.error('Error sending email:', error);
-        alert('Error sending email. Please try again.');
+        const data = await res.json();
+        if (data.success) {
+            status.style.color = '#10b981';
+            status.textContent = data.message || 'Sent!';
+            setTimeout(closeEmailModal, 2200);
+        } else {
+            status.style.color = '#ef4444';
+            status.textContent = data.error || 'Could not send. Try again.';
+        }
+    } catch {
+        status.style.color = '#ef4444';
+        status.textContent = 'Connection error. Try again.';
     }
 }
 
-function shareRecommendations() {
-    const url = `${window.location.origin}/chatbot/plan-my-event/?code=${conversationCode}`;
-    navigator.clipboard.writeText(url).then(() => {
-        alert('Link copied to clipboard!');
-    });
+// ── Copy share link ────────────────────────────────────────────────────────
+function copyShareLink() {
+    const url = `${window.location.origin}/chatbot/plan-my-event/?code=${convCode}`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url)
+            .then(() => alert('Link copied to clipboard!'))
+            .catch(() => prompt('Copy this link:', url));
+    } else {
+        prompt('Copy this link:', url);
+    }
 }
 
-function exportPDF() {
-    alert('PDF export feature coming soon!');
+// ── DOM helpers ────────────────────────────────────────────────────────────
+function appendMsg(role, text) {
+    const container = document.getElementById('chatMsgs');
+    const row = document.createElement('div');
+    row.className = `msg-row ${role}`;
+    const icon = role === 'assistant' ? 'bi-stars' : 'bi-person-fill';
+    row.innerHTML = `
+        <div class="msg-avatar"><i class="bi ${icon}"></i></div>
+        <div class="msg-bubble">${escHtml(text)}</div>`;
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+let typingEl = null;
+function showTyping() {
+    const container = document.getElementById('chatMsgs');
+    typingEl = document.createElement('div');
+    typingEl.className = 'msg-row assistant';
+    typingEl.innerHTML = `
+        <div class="msg-avatar"><i class="bi bi-stars"></i></div>
+        <div class="typing-bubble"><span></span><span></span><span></span></div>`;
+    container.appendChild(typingEl);
+    container.scrollTop = container.scrollHeight;
+}
+function hideTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
+
+function setInputEnabled(on) {
+    document.getElementById('msgInput').disabled = !on;
+    document.getElementById('sendBtn').disabled  = !on;
+    if (on) document.getElementById('msgInput').focus();
+}
+function enableInput() { setInputEnabled(true); }
+
+function escHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+}
+
+// ── CSRF ───────────────────────────────────────────────────────────────────
+function getCsrfToken() {
+    for (const c of document.cookie.split(';')) {
+        const t = c.trim();
+        if (t.startsWith('csrftoken=')) return decodeURIComponent(t.slice('csrftoken='.length));
+    }
+    return '{{ csrf_token }}';
+}
+function csrfHeaders() {
+    return { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() };
 }
 </script>
 {% endblock %}

@@ -95,6 +95,33 @@ def send_lead_notification_email(lead):
     )
 
 
+def send_lead_confirmation_email(lead):
+    """Send confirmation to the person who submitted the lead"""
+    if not lead.email:
+        return
+
+    vendor = lead.vendor
+    subject = f'Your enquiry to {vendor.name} has been sent'
+
+    html_message = render_to_string('emails/lead_confirmation.html', {
+        'lead': lead,
+        'vendor': vendor,
+        'site_name': settings.SITE_NAME,
+        'site_url': settings.SITE_URL,
+        'vendor_url': f"{settings.SITE_URL}/vendors/{vendor.slug}/",
+    })
+    plain_message = strip_tags(html_message)
+
+    send_mail(
+        subject=subject,
+        message=plain_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[lead.email],
+        html_message=html_message,
+        fail_silently=True,
+    )
+
+
 def send_subscription_confirmation_email(subscription):
     """Send subscription confirmation email"""
     vendor = subscription.vendor

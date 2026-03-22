@@ -56,9 +56,14 @@
             
             <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
                 <div class="d-flex flex-column gap-2">
-                    <a href="{% url 'lead_create' vendor.slug %}" class="btn btn-light btn-lg">
+                    <a href="{% url 'lead_create' vendor.slug %}?source=direct" class="btn btn-light btn-lg">
                         <i class="bi bi-envelope me-2"></i>Request Quote
                     </a>
+                    {% if vendor.phone_number %}
+                    <button class="btn btn-outline-light btn-lg" id="showPhoneBtn" data-vendor-slug="{{ vendor.slug }}" data-phone="{{ vendor.phone_number }}">
+                        <i class="bi bi-telephone me-2"></i><span id="showPhoneLabel">Show Phone</span>
+                    </button>
+                    {% endif %}
                     {% if user.is_authenticated %}
                         <button class="btn btn-outline-light" id="favoriteBtn" data-vendor-id="{{ vendor.id }}">
                             <i class="bi bi-heart{% if is_favorited %}-fill{% endif %} me-2"></i>
@@ -191,6 +196,7 @@
                     </div>
                     <div class="card-body">
                         <ul class="list-unstyled mb-0">
+                            {% if vendor.phone_number %}
                             <li class="mb-3">
                                 <div class="d-flex align-items-center">
                                     <div class="bg-pale rounded-circle p-2 me-3">
@@ -198,12 +204,15 @@
                                     </div>
                                     <div>
                                         <small class="text-muted d-block">Phone</small>
-                                        <a href="tel:{{ vendor.phone_number }}" class="text-deep-navy text-decoration-none fw-500">
-                                            {{ vendor.phone_number }}
-                                        </a>
+                                        <button class="btn btn-link p-0 text-deep-navy text-decoration-none fw-500 show-phone-sidebar"
+                                                data-vendor-slug="{{ vendor.slug }}"
+                                                data-phone="{{ vendor.phone_number }}">
+                                            <i class="bi bi-eye me-1"></i>Show Number
+                                        </button>
                                     </div>
                                 </div>
                             </li>
+                            {% endif %}
                             <li class="mb-3">
                                 <div class="d-flex align-items-center">
                                     <div class="bg-pale rounded-circle p-2 me-3">
@@ -308,7 +317,7 @@
                         <i class="bi bi-chat-dots" style="font-size: 3rem;"></i>
                         <h5 class="mt-3 mb-2">Interested in this vendor?</h5>
                         <p class="opacity-75 mb-3">Get a personalized quote for your event</p>
-                        <a href="{% url 'lead_create' vendor.slug %}" class="btn btn-light btn-lg w-100">
+                        <a href="{% url 'lead_create' vendor.slug %}?source=direct" class="btn btn-light btn-lg w-100">
                             <i class="bi bi-envelope me-2"></i>Request Quote
                         </a>
                     </div>
@@ -357,4 +366,50 @@
         </div>
     </section>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function revealPhone(slug, phoneDisplay, labelEl, linkEl) {
+    fetch(`/leads/phone-reveal/${slug}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (labelEl) labelEl.textContent = data.phone;
+        if (linkEl) {
+            linkEl.outerHTML = `<a href="tel:${data.phone}" class="text-deep-navy text-decoration-none fw-500">${data.phone}</a>`;
+        }
+    })
+    .catch(() => {
+        if (labelEl) labelEl.textContent = phoneDisplay;
+    });
+}
+
+// Hero show-phone button
+const showPhoneBtn = document.getElementById('showPhoneBtn');
+if (showPhoneBtn) {
+    showPhoneBtn.addEventListener('click', function () {
+        const slug = this.dataset.vendorSlug;
+        const phone = this.dataset.phone;
+        const label = document.getElementById('showPhoneLabel');
+        label.textContent = '...';
+        revealPhone(slug, phone, label, null);
+        this.disabled = true;
+    });
+}
+
+// Sidebar show-phone buttons
+document.querySelectorAll('.show-phone-sidebar').forEach(function(btn) {
+    btn.addEventListener('click', function () {
+        const slug = this.dataset.vendorSlug;
+        const phone = this.dataset.phone;
+        revealPhone(slug, phone, null, this);
+    });
+});
+</script>
 {% endblock %}

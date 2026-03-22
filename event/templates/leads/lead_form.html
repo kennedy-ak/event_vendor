@@ -34,6 +34,7 @@
             <div class="col-lg-8">
                 <div class="card-custom">
                     <div class="card-body p-4 p-md-5">
+                        <!-- Vendor mini-header -->
                         <div class="d-flex align-items-center mb-4">
                             {% if vendor.images_list %}
                                 <img src="{{ vendor.images_list.0 }}" alt="{{ vendor.name }}" class="rounded me-3" style="width:60px;height:60px;object-fit:cover;">
@@ -48,25 +49,39 @@
                             </div>
                         </div>
 
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+
                         <form method="POST">
                             {% csrf_token %}
+                            <input type="hidden" name="source" value="{{ source }}">
 
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Your Name *</label>
                                     {{ form.name }}
+                                    {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Preferred Contact Method</label>
                                     {{ form.contact_method }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Phone</label>
+                                    <label class="form-label">Phone <span class="text-muted small">(phone or email required)</span></label>
                                     {{ form.phone }}
+                                    {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>{% endif %}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Email *</label>
+                                    <label class="form-label">Email <span class="text-muted small">(phone or email required)</span></label>
                                     {{ form.email }}
+                                    {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Event Type</label>
+                                    {{ form.event_type }}
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Event Date</label>
@@ -75,7 +90,7 @@
                                 <div class="col-12">
                                     <label class="form-label">Message</label>
                                     {{ form.message }}
-                                    <small class="text-muted d-block mt-1">Include location, expected guests, and services needed.</small>
+                                    <small class="text-muted d-block mt-1">Include location, expected guests, budget range, and any specific requirements.</small>
                                 </div>
                             </div>
 

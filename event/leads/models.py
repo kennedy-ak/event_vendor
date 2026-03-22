@@ -22,6 +22,18 @@ class Lead(models.Model):
         ('featured', 'Featured'),
         ('ad', 'Advertisement'),
         ('direct', 'Direct'),
+        ('phone_reveal', 'Phone Reveal'),
+    ]
+
+    EVENT_TYPE_CHOICES = [
+        ('wedding', 'Wedding'),
+        ('birthday', 'Birthday Party'),
+        ('corporate', 'Corporate Event'),
+        ('burial', 'Burial / Funeral'),
+        ('graduation', 'Graduation'),
+        ('baby_shower', 'Baby Shower'),
+        ('engagement', 'Engagement'),
+        ('other', 'Other'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -41,11 +53,15 @@ class Lead(models.Model):
     email = models.EmailField(blank=True)
     message = models.TextField(blank=True)
     event_date = models.DateField(null=True, blank=True, help_text="Planned event date")
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES, blank=True, default='')
+
+    # Vendor internal notes
+    notes = models.TextField(blank=True, help_text="Internal notes for vendor use only")
 
     # Lead metadata
-    contact_method = models.CharField(max_length=10, choices=CONTACT_METHOD_CHOICES, default='phone')
+    contact_method = models.CharField(max_length=15, choices=CONTACT_METHOD_CHOICES, default='phone')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='new')
-    source = models.CharField(max_length=10, choices=SOURCE_CHOICES, default='search')
+    source = models.CharField(max_length=15, choices=SOURCE_CHOICES, default='search')
 
     # Billing
     billed = models.BooleanField(default=False, help_text="Whether this lead has been billed")

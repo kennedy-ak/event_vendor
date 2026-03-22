@@ -121,6 +121,8 @@ class Vendor(models.Model):
 
         if not self.slug:
             base_slug = slugify(self.name)
+            if not base_slug:
+                base_slug = f"vendor-{self.pk or 'new'}"
             slug = base_slug
             counter = 1
             while Vendor.objects.filter(slug=slug).exclude(pk=self.pk).exists():

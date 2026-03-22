@@ -19,7 +19,7 @@ def home_view(request):
     featured_vendors = Vendor.objects.filter(
         status='active',
         verified=True
-    ).order_by('-rating', '-created_at')[:8]
+    ).select_related('category').order_by('-rating', '-created_at')[:8]
 
     return render(request, 'home.html', {
         'categories': categories,
@@ -31,8 +31,8 @@ def vendor_list_view(request):
     """List view of vendors with search and filtering"""
     form = VendorSearchForm(request.GET or None)
 
-    # Start with active and verified vendors
-    vendors = Vendor.objects.filter(status='active', verified=True)
+    # Start with active and verified vendors (exclude those with empty slugs)
+    vendors = Vendor.objects.filter(status='active', verified=True).exclude(slug='').select_related('category')
 
     # Variables for proximity search
     latitude = request.GET.get('latitude')
@@ -113,21 +113,30 @@ def vendor_list_view(request):
 
 def vendor_detail_view(request, slug):
     """Detailed view of a single vendor"""
-    vendor = get_object_or_404(Vendor, slug=slug, status='active')
+    vendor = get_object_or_404(
+        Vendor.objects.select_related('category', 'user'),
+        slug=slug,
+        status='active',
+    )
 
     # Increment view count
     vendor.views_count += 1
     vendor.save(update_fields=['views_count'])
 
-    # Get reviews
-    reviews = Review.objects.filter(vendor=vendor, is_approved=True).order_by('-created_at')
+    # Get reviews — select user to avoid N+1 on reviewer name
+    reviews = (
+        Review.objects.filter(vendor=vendor, is_approved=True)
+        .select_related('user')
+        .order_by('-created_at')
+    )
 
     # Get similar vendors
-    similar_vendors = Vendor.objects.filter(
-        category=vendor.category,
-        status='active',
-        verified=True
-    ).exclude(id=vendor.id).order_by('-rating')[:4]
+    similar_vendors = (
+        Vendor.objects.filter(category=vendor.category, status='active', verified=True)
+        .select_related('category')
+        .exclude(id=vendor.id)
+        .order_by('-rating')[:4]
+    )
 
     # Check if user has favorited
     is_favorited = False
@@ -207,10 +216,10 @@ def vendor_update_view(request, slug):
 def vendor_dashboard_view(request):
     """Vendor dashboard with stats and leads"""
     # Get vendor's listings
-    vendors = Vendor.objects.filter(user=request.user)
+    vendors = Vendor.objects.filter(user=request.user).select_related('category')
 
     # Get leads for vendor's listings
-    leads = Lead.objects.filter(vendor__in=vendors).order_by('-created_at')
+    leads = Lead.objects.filter(vendor__in=vendors).select_related('vendor').order_by('-created_at')
 
     # Pagination for leads
     paginator = Paginator(leads, settings.LEADS_PER_PAGE)
@@ -238,7 +247,7 @@ def category_view(request, slug):
         category=category,
         status='active',
         verified=True
-    ).order_by('-rating', '-created_at')
+    ).select_related('category').order_by('-rating', '-created_at')
 
     # Pagination
     paginator = Paginator(vendors, settings.VENDORS_PER_PAGE)

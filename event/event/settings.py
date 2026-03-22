@@ -72,7 +72,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files
+    'django.middleware.gzip.GZipMiddleware',        # Compress responses
+    'whitenoise.middleware.WhiteNoiseMiddleware',   # Serve static files
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,11 +85,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'event.urls'
 
+# Template loaders: cached in production, plain in development
+_TEMPLATE_LOADERS = [
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -98,6 +104,13 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
             ],
+            # In production: wrap loaders in cached.Loader so templates are
+            # compiled once and stored in memory — eliminates repeated disk reads.
+            'loaders': (
+                [('django.template.loaders.cached.Loader', _TEMPLATE_LOADERS)]
+                if not DEBUG
+                else _TEMPLATE_LOADERS
+            ),
         },
     },
 ]
@@ -108,25 +121,51 @@ WSGI_APPLICATION = 'event.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-# Using SQLite for development (easier setup on Windows)
-DATABASES = {
+import urllib.parse
+
+# Using PostgreSQL with full connection URL
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # Parse the DATABASE_URL
+    parsed = urllib.parse.urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed.path[1:],  # Remove leading slash
+            'USER': parsed.username,
+            'PASSWORD': parsed.password,
+            'HOST': parsed.hostname,
+            'PORT': parsed.port or 5432,
+            'CONN_MAX_AGE': 60,  # Reuse DB connections for 60s (avoids new conn overhead per request)
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
+    }
+else:
+    # Fallback to SQLite for development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'CONN_MAX_AGE': 0,  # SQLite doesn't benefit from persistent connections
+        }
+    }
+
+
+# ── Caching ────────────────────────────────────────────────────────────────
+# LocMemCache: per-process in-memory cache — zero config, works everywhere.
+# Swap for Redis in production: 'django.core.cache.backends.redis.RedisCache'
+CACHES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'events-exclusive',
     }
 }
 
-# For production with PostGIS, use:
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#         'NAME': os.environ.get('DB_NAME', 'ghana_events_db'),
-#         'USER': os.environ.get('DB_USER', 'postgres'),
-#         'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-#         'HOST': os.environ.get('DB_HOST', 'localhost'),
-#         'PORT': os.environ.get('DB_PORT', '5432'),
-#     }
-# }
+# Cache session data in the cache backend instead of hitting the DB every request
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 
 # Password validation

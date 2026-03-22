@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enquiry Confirmation</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #000814, #003566); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="margin: 0; font-size: 28px;">Enquiry Sent!</h1>
+        <p style="margin: 10px 0 0; opacity: 0.8;">We've forwarded your request to {{ vendor.name }}</p>
+    </div>
+
+    <!-- Content -->
+    <div style="background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">Hi <strong>{{ lead.name }}</strong>,</p>
+        <p>Your enquiry has been sent to <strong>{{ vendor.name }}</strong>. They will get back to you shortly via your preferred contact method.</p>
+
+        <div style="background-color: #f0f8ff; padding: 20px; border-radius: 8px; border-left: 4px solid #003566; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #000814;">Your Enquiry Summary</h3>
+
+            <p style="margin: 10px 0;"><strong style="color: #003566;">Vendor:</strong> {{ vendor.name }}</p>
+            {% if lead.event_type %}
+            <p style="margin: 10px 0;"><strong style="color: #003566;">Event Type:</strong> {{ lead.get_event_type_display }}</p>
+            {% endif %}
+            {% if lead.event_date %}
+            <p style="margin: 10px 0;"><strong style="color: #003566;">Event Date:</strong> {{ lead.event_date|date:"F d, Y" }}</p>
+            {% endif %}
+            <p style="margin: 10px 0;"><strong style="color: #003566;">Preferred Contact:</strong> {{ lead.get_contact_method_display }}</p>
+            {% if lead.message %}
+            <div style="margin-top: 15px;">
+                <strong style="color: #003566;">Your Message:</strong>
+                <p style="background: white; padding: 12px; border-radius: 5px; margin: 8px 0; border: 1px solid #ddd;">{{ lead.message }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <p style="color: #555;">In the meantime, you can view the vendor's full profile:</p>
+
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="{{ vendor_url }}" style="display: inline-block; background: linear-gradient(135deg, #000814, #003566); color: white; padding: 12px 35px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                View {{ vendor.name }} →
+            </a>
+        </div>
+
+        <p style="font-size: 14px; color: #777;">If you did not submit this enquiry, please ignore this email.</p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: 20px; color: #666; font-size: 14px;">
+        <p style="margin: 5px 0;">Sent by <strong>{{ site_name }}</strong></p>
+        <a href="{{ site_url }}" style="color: #003566; text-decoration: none;">Visit Website</a>
+    </div>
+</body>
+</html>

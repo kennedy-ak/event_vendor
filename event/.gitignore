@@ -35,3 +35,6 @@ Thumbs.db
 
 # Temporary files
 nul
+.env
+db.sqlite3
+nohup.out
